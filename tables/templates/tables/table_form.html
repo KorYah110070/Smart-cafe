@@ -1,0 +1,25 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}{% if object %}แก้ไขโต๊ะ{% else %}เพิ่มโต๊ะ{% endif %} - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><rect x="3.5" y="4" width="17" height="12" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M7 16v3M17 16v3"/></svg>{% if object %}แก้ไขโต๊ะ T{{ object.table_number }}{% else %}เพิ่มโต๊ะใหม่{% endif %}</h1>
+
+<div class="td-card" style="max-width:480px;">
+  <div class="td-card-body">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="td-field">
+          <label>{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="td-btn td-btn-solid">บันทึก</button>
+        <a href="{% url 'tables:manage' %}" class="td-btn">ยกเลิก</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}ลบโปรโมชั่น - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1>ลบโปรโมชั่น "{{ object.title }}"</h1>
+<div class="td-card" style="max-width:460px;">
+  <div class="td-card-body">
+    <p>ยืนยันการลบโปรโมชั่นนี้?</p>
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="td-btn td-btn-danger">ยืนยันลบ</button>
+        <a href="{% url 'promotions:manage' %}" class="td-btn">ยกเลิก</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

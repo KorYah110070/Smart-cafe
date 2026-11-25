@@ -1,0 +1,38 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}สถิติลูกค้า - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><rect x="4" y="12" width="3.2" height="8" rx="0.8"/><rect x="10.4" y="7" width="3.2" height="13" rx="0.8"/><rect x="16.8" y="3.5" width="3.2" height="16.5" rx="0.8"/></svg>สถิติลูกค้า</h1>
+<div class="page-sub">ภาพรวมจำนวนลูกค้าและความถี่ในการใช้บริการ</div>
+
+<div class="td-stat-row">
+  <div class="td-stat-tile"><div class="num">{{ total_customers }}</div><div class="label">ลูกค้าทั้งหมด</div></div>
+  <div class="td-stat-tile"><div class="num" style="color:var(--status-served);">{{ new_customers_this_month }}</div><div class="label">ลูกค้าใหม่เดือนนี้</div></div>
+  <div class="td-stat-tile"><div class="num">{{ total_reservations }}</div><div class="label">การจองทั้งหมด (ไม่รวมยกเลิก)</div></div>
+  <div class="td-stat-tile"><div class="num">{{ active_promotions }}</div><div class="label">โปรโมชั่นที่ active</div></div>
+  <div class="td-stat-tile"><div class="num">{{ available_menu_items }}</div><div class="label">เมนูที่เปิดขาย</div></div>
+</div>
+
+<div class="td-card" style="margin-top:20px;">
+  <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><path d="M7 4h10v3.5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4.8a1.8 1.8 0 0 0 0 3.6H6.3M17 5h2.2a1.8 1.8 0 0 1 0 3.6H17.7"/><path d="M12 11.5V15M9 19.5h6M10 15.5h4l.6 4H9.4Z"/></svg>ลูกค้าประจำ (จองบ่อยที่สุด)</h2></div>
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead>
+        <tr><th>ลำดับ</th><th>ชื่อผู้ใช้</th><th>จำนวนครั้งที่จอง</th><th>สมัครเมื่อ</th></tr>
+      </thead>
+      <tbody>
+        {% for c in top_customers %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ c.username }}</td>
+            <td><span class="td-badge td-badge-served">{{ c.reservation_count }} ครั้ง</span></td>
+            <td>{{ c.date_joined|date:"d/m/Y" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="td-empty">ยังไม่มีข้อมูลการจองของลูกค้า</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

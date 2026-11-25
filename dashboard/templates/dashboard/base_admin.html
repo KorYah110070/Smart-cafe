@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Panel - Smart Cafe{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+  <style>
+    body.theme-dark { display: block; padding: 0; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ---------- Sidebar (เหมือนฝั่งลูกค้าทุกประการ เพื่อความเป็นระบบเดียวกัน) ---------- */
+    .sidebar {
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 22px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      padding-bottom: 20px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand .logo-icon {
+      width: 46px; height: 46px; border-radius: 14px;
+      background: var(--red-tint);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand .logo-icon svg { width: 26px; height: 26px; }
+    .brand .brand-name { font-size: 17px; font-weight: 800; color: var(--red-mid); letter-spacing: 0.3px; }
+    .brand .brand-sub { font-size: 10px; letter-spacing: 1.5px; color: var(--gold); font-weight: 700; }
+
+    .sidebar-nav { display: flex; flex-direction: column; gap: 5px; flex: 1; overflow-y: auto; }
+
+    .side-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 12px; border-radius: 12px;
+      font-size: 13px; font-weight: 600; color: var(--text);
+    }
+    .side-item .icon {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--bg-panel); color: var(--text-dim);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .side-item .icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+    .side-item:hover { background: var(--red-tint); }
+    .side-item:hover .icon { background: var(--red); color: #fff; }
+    .side-item.active { background: var(--red); color: #fff; }
+    .side-item.active .icon { background: rgba(255,255,255,0.2); color: #fff; }
+
+    .sidebar-divider { border-top: 1px solid var(--border); margin: 8px 0; }
+
+    .sidebar-profile {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-profile .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--red-tint); color: var(--red-mid); font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--red); flex-shrink: 0;
+    }
+    .sidebar-profile .who { flex: 1; min-width: 0; }
+    .sidebar-profile .who .name { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-profile .who .role { font-size: 10.5px; color: var(--gold); }
+    .sidebar-profile form button {
+      background: none; border: 1px solid var(--border); color: var(--text-dim);
+      border-radius: 8px; font-size: 11px; padding: 4px 8px; cursor: pointer; font-family: inherit;
+    }
+    .sidebar-profile form button:hover { border-color: var(--red); color: var(--red-mid); }
+
+    /* ---------- Main column ---------- */
+    .main-col { padding: 22px 28px 60px; max-width: 1280px; width: 100%; }
+
+    .main-topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .search-box {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      background: var(--bg-panel); border: 1px solid var(--border); border-radius: 24px;
+      padding: 10px 18px; color: var(--text-dim); font-size: 13px;
+    }
+    .search-box input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-size: 13px; }
+    .search-box input::placeholder { color: var(--text-dim); }
+    .td-clock { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .bell-btn {
+      width: 42px; height: 42px; border-radius: 50%; background: var(--bg-panel); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 17px; color: var(--text-dim);
+      position: relative; cursor: pointer; flex-shrink: 0;
+    }
+    .bell-btn .dot { position: absolute; top: 8px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+
+    /* ---------- Page header (back button) ---------- */
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-dim);
+      border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .back-btn:hover { border-color: var(--red); color: var(--red-mid); }
+    .back-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; vertical-align: -2px; margin-right: 2px; }
+
+    .alert { margin-bottom: 16px; padding: 10px 16px; border-radius: 10px; border: 1px solid; }
+    .alert-success { background-color: rgba(39, 174, 96, 0.15); border-color: var(--status-served); color: #9ef0bd; }
+    .alert-danger, .alert-error { background-color: var(--red-tint); border-color: var(--red-bright); color: #ffb4ac; }
+    .alert-info { background-color: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+
+    .admin-main h1 { margin: 0 0 2px; font-size: 22px; }
+    .admin-main .page-sub { color: var(--text-dim); font-size: 12.5px; margin-bottom: 18px; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+    }
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body class="theme-dark">
+  <div class="layout">
+    <div class="sidebar">
+      <a class="brand" href="{% url 'dashboard:dashboard' %}">
+        <span class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 8H17V14C17 17.3137 14.3137 20 11 20H9C5.68629 20 3 17.3137 3 14V8Z" stroke="#e15757" stroke-width="1.6"/>
+            <path d="M17 9H18.5C19.8807 9 21 10.1193 21 11.5C21 12.8807 19.8807 14 18.5 14H17" stroke="#e15757" stroke-width="1.6"/>
+            <path d="M7 5C7 4 8 3.5 7.5 2.5" stroke="#e15757" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M11 5C11 4 12 3.5 11.5 2.5" stroke="#e15757" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">Smart Cafe</span>
+        <span class="brand-sub">ADMIN PANEL</span>
+      </a>
+
+      <div class="sidebar-nav">
+        <a class="side-item{% if request.resolver_match.view_name == 'dashboard:dashboard' %} active{% endif %}" href="{% url 'dashboard:dashboard' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg></span>
+          Dashboard
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'tables' %} active{% endif %}" href="{% url 'tables:manage' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="12" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M7 16v3M17 16v3"/></svg></span>
+          จัดการผังร้าน
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'menus' %} active{% endif %}" href="{% url 'menus:manage' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v5.5A4.5 4.5 0 0 1 11.5 19H9.5A4.5 4.5 0 0 1 5 14.5V9Z"/><path d="M16 10.5h1.5a2 2 0 0 1 0 4H16"/><path d="M8 5.5c0-.6.4-1 .8-1.5M11.5 5.5c0-.6.4-1 .8-1.5"/></svg></span>
+          จัดการเมนู
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'promotions' %} active{% endif %}" href="{% url 'promotions:manage' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.3 4H18a1 1 0 0 1 1 1v6.7c0 .4-.2.7-.4 1L11 20.3a1.5 1.5 0 0 1-2.1 0l-5.2-5.2a1.5 1.5 0 0 1 0-2.1L10.3 4.4c.3-.3.6-.4 1-.4Z"/><circle cx="14.8" cy="8.2" r="1.4"/></svg></span>
+          จัดการโปรโมชั่น
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'reservations' %} active{% endif %}" href="{% url 'reservations:admin_list' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg></span>
+          จัดการการจอง
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'orders' %} active{% endif %}" href="{% url 'orders:my_orders' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v17.5l-2.5-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 20.5Z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg></span>
+          จัดการคำสั่งซื้อ
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'accounts' %} active{% endif %}" href="{% url 'accounts:member_list' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/><circle cx="17" cy="8.5" r="2.3"/><path d="M15.5 13.3c2.2.3 4 2.3 4.2 4.9"/></svg></span>
+          จัดการสมาชิก
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <a class="side-item{% if request.resolver_match.view_name == 'dashboard:stats' %} active{% endif %}" href="{% url 'dashboard:stats' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="12" width="3.2" height="8" rx="0.8"/><rect x="10.4" y="7" width="3.2" height="13" rx="0.8"/><rect x="16.8" y="3.5" width="3.2" height="16.5" rx="0.8"/></svg></span>
+          สถิติลูกค้า
+        </a>
+        <a class="side-item{% if request.resolver_match.view_name == 'dashboard:sales_stats' %} active{% endif %}" href="{% url 'dashboard:sales_stats' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l5-5 4 4 7-8"/><path d="M15 6.5h5V11.5"/></svg></span>
+          สถิติยอดขาย
+        </a>
+        <a class="side-item{% if request.resolver_match.app_name == 'ai_assistant' %} active{% endif %}" href="{% url 'ai_assistant:manage' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10.5H9l-4 3.5V16H4z"/></svg></span>
+          จัดการ AI Chatbot
+        </a>
+        <a class="side-item{% if request.resolver_match.view_name == 'dashboard:settings' %} active{% endif %}" href="{% url 'dashboard:settings' %}">
+          <span class="icon"><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.4-2-3.4-2.2.9a7.5 7.5 0 0 0-2.6-1.5L14.1 2h-4l-.4 2.1a7.5 7.5 0 0 0-2.6 1.5l-2.2-.9-2 3.4 1.9 1.4a7.6 7.6 0 0 0 0 3l-1.9 1.4 2 3.4 2.2-.9a7.5 7.5 0 0 0 2.6 1.5l.4 2.1h4l.4-2.1a7.5 7.5 0 0 0 2.6-1.5l2.2.9 2-3.4-1.9-1.4Z"/></svg></span>
+          ตั้งค่าระบบ
+        </a>
+      </div>
+
+      <div class="sidebar-profile">
+        <span class="avatar">{{ user.username|slice:":1"|upper }}</span>
+        <div class="who">
+          <div class="name">{{ user.username }}</div>
+          <div class="role">{% if user.is_admin_role or user.is_superuser %}แอดมิน{% else %}พนักงาน{% endif %}</div>
+        </div>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit">ออก</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="main-col">
+      <div class="main-topbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;flex-shrink:0;"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" placeholder="ค้นหาเมนูหรือข้อมูลต่างๆ...">
+        </div>
+        <div class="td-clock" id="liveClock">--:--</div>
+        <div class="bell-btn">
+          <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;stroke:currentColor;fill:none;"><path d="M12 3a4 4 0 0 0-4 4v2.3c0 .7-.2 1.4-.7 2L5.6 14a1 1 0 0 0 .8 1.6h11.2a1 1 0 0 0 .8-1.6l-1.7-2.7a3.7 3.7 0 0 1-.7-2V7a4 4 0 0 0-4-4Z"/><path d="M9.5 18.2a2.6 2.6 0 0 0 5 0"/></svg>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block page_header %}
+        <div class="page-header">
+          <button type="button" class="back-btn" onclick="history.back()">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg>
+            กลับ
+          </button>
+        </div>
+      {% endblock %}
+
+      <div class="admin-main">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateClock() {
+      const el = document.getElementById('liveClock');
+      if (!el) return;
+      const now = new Date();
+      el.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    }
+    updateClock();
+    setInterval(updateClock, 15000);
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

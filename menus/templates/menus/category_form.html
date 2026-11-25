@@ -1,0 +1,25 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}เพิ่มหมวดหมู่เมนู - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1>+ เพิ่มหมวดหมู่เมนู</h1>
+
+<div class="td-card" style="max-width:420px;">
+  <div class="td-card-body">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="td-field">
+          <label>{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="td-btn td-btn-solid">บันทึก</button>
+        <a href="{% url 'menus:manage' %}" class="td-btn">ยกเลิก</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

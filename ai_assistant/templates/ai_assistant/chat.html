@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}ผู้ช่วย AI{% endblock %}
+{% block content %}
+<h3 class="mb-3">ผู้ช่วย AI (RAG Chatbot)</h3>
+<p class="text-muted">ถามเกี่ยวกับโต๊ะ เมนู หรือโปรโมชั่นได้เลย (ตอนนี้ยังเป็นเวอร์ชันทดสอบ Retrieval เท่านั้น ยังไม่เชื่อม LLM จริง)</p>
+
+<form method="post" class="mb-3">
+  {% csrf_token %}
+  <div class="input-group">
+    <input type="text" name="question" class="form-control" placeholder="เช่น มีโต๊ะว่างสำหรับ 6 คนไหม" value="{{ question|default:'' }}">
+    <button class="btn btn-dark" type="submit">ถาม</button>
+  </div>
+</form>
+
+{% if answer %}
+<div class="card">
+  <div class="card-body">
+    <pre style="white-space: pre-wrap;">{{ answer }}</pre>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

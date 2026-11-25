@@ -1,0 +1,90 @@
+{% extends layout_template %}
+{% block title %}{% if is_staff_view %}จัดการคำสั่งซื้อ - Smart Cafe{% else %}สถานะการสั่งซื้อ{% endif %}{% endblock %}
+
+{% block extra_css %}
+.order-items { font-size:12.5px; color:var(--text-dim); line-height:1.6; }
+.status-form { display:inline; }
+.status-form select { padding:5px 8px; font-size:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg-elevated); color:var(--text); font-family:inherit; }
+{% endblock %}
+{% block extra_style %}
+.order-items { font-size:12.5px; color:var(--text-dim); line-height:1.6; }
+.status-form { display:inline; }
+.status-form select { padding:5px 8px; font-size:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg-elevated); color:var(--text); font-family:inherit; }
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1>
+      <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><path d="M6 3h12v17.5l-2.5-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 20.5Z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg>
+      {% if is_staff_view %}จัดการคำสั่งซื้อ{% else %}สถานะการสั่งซื้อ{% endif %}
+    </h1>
+    <div class="page-sub">
+      {% if is_staff_view %}ดูคำสั่งซื้อทั้งหมดของลูกค้า และอัปเดตสถานะได้โดยตรง{% else %}ประวัติและสถานะคำสั่งซื้อของฉัน{% endif %}
+    </div>
+  </div>
+  {% if is_staff_view %}
+    <a href="{% url 'orders:takeaway_create' %}" class="td-btn td-btn-solid">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M4 8h16l-1.5 11a2 2 0 0 1-2 2H7.5a2 2 0 0 1-2-2L4 8Z"/><path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2"/></svg>
+      + ซื้อกลับ
+    </a>
+  {% endif %}
+</div>
+
+<div class="td-card">
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead>
+        <tr>
+          <th>ออเดอร์</th>
+          <th>ประเภท</th>
+          {% if is_staff_view %}<th>ลูกค้า</th>{% endif %}
+          <th>รายการ</th>
+          <th>ยอดรวม</th>
+          <th>ชำระเงิน</th>
+          <th>สถานะ</th>
+          {% if is_staff_view %}<th>เปลี่ยนสถานะ</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td>#{{ order.id }}</td>
+            <td>
+              {% if order.order_type == 'takeaway' %}
+                <span class="td-badge td-badge-outline" style="padding:2px 8px;font-size:9.5px;">ซื้อกลับ</span>
+              {% else %}
+                <span class="td-badge td-badge-outline" style="padding:2px 8px;font-size:9.5px;">ทานที่ร้าน{% if order.reservation_id %} #{{ order.reservation_id }}{% endif %}</span>
+              {% endif %}
+            </td>
+            {% if is_staff_view %}<td>{{ order.customer_display_name }}</td>{% endif %}
+            <td class="order-items">
+              {% for it in order.items.all %}{{ it.menu_item.name }} x{{ it.quantity }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+            </td>
+            <td>฿{{ order.total_price|floatformat:0 }}</td>
+            <td>
+              {% if order.is_paid %}<span class="td-badge td-badge-served">จ่ายแล้ว</span>{% else %}<span class="td-badge td-badge-pending">ยังไม่จ่าย</span>{% endif %}
+              {% if order.payment_method %}<div style="font-size:10.5px;color:var(--text-faint);margin-top:2px;">{{ order.get_payment_method_display }}</div>{% endif %}
+            </td>
+            <td><span class="td-badge td-badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+            {% if is_staff_view %}
+              <td>
+                <form method="post" action="{% url 'orders:admin_status_update' order.pk %}" class="status-form">
+                  {% csrf_token %}
+                  <select name="status" onchange="this.form.submit()">
+                    {% for value, label in status_choices %}
+                      <option value="{{ value }}" {% if value == order.status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="{% if is_staff_view %}8{% else %}6{% endif %}" class="td-empty">ยังไม่มีคำสั่งซื้อ</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

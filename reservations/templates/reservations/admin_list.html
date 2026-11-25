@@ -1,0 +1,81 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}จัดการการจอง - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+.filter-row select, .filter-row input { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); font-size: 13px; }
+.status-form { display: inline; }
+.status-form select { padding: 4px 8px; font-size: 12px; border-radius: 8px; }
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg>จัดการการจอง</h1>
+    <div class="page-sub">ดูการจองทั้งหมด กรองตามวันที่/สถานะ และเปลี่ยนสถานะได้โดยตรง</div>
+  </div>
+  <a href="{% url 'reservations:walkin_seat' %}" class="td-btn td-btn-solid">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M17 8.5h4M19 6.5v4"/></svg>
+    รับลูกค้าวอล์กอิน
+  </a>
+</div>
+
+<form method="get" class="filter-row">
+  <input type="date" name="date" value="{{ selected_date }}">
+  <select name="status">
+    <option value="">สถานะทั้งหมด</option>
+    {% for value, label in status_choices %}
+      <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="td-btn td-btn-sm">กรอง</button>
+  <a href="{% url 'reservations:admin_list' %}" class="td-btn td-btn-sm">ล้างตัวกรอง</a>
+  <a href="{% url 'reservations:admin_list' %}?date={{ today }}" class="td-btn td-btn-sm td-btn-solid">วันนี้</a>
+</form>
+
+<div class="td-card">
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead>
+        <tr><th>วันที่</th><th>ลูกค้า</th><th>โต๊ะ</th><th>จำนวนคน</th><th>สถานะ</th><th>เปลี่ยนสถานะ</th></tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+          <tr>
+            <td>{{ r.reservation_date|date:"d/m/Y" }}</td>
+            <td>{{ r.customer_display_name }}{% if r.is_walkin %} <span class="td-badge td-badge-outline" style="padding:2px 8px;font-size:9.5px;">วอล์กอิน</span>{% endif %}</td>
+            <td>T{{ r.table_numbers_display }}</td>
+            <td>{{ r.party_size }}</td>
+            <td><span class="td-badge td-badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+            <td>
+              <form method="post" action="{% url 'reservations:admin_status_update' r.pk %}" class="status-form">
+                {% csrf_token %}
+                <input type="hidden" name="next_query" value="date={{ selected_date }}&status={{ selected_status }}">
+                <select name="status" onchange="this.form.submit()">
+                  {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if value == r.status %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="td-empty">ไม่พบการจองตามเงื่อนไขที่เลือก</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if is_paginated %}
+  <div style="display:flex;gap:8px;margin-top:14px;">
+    {% if page_obj.has_previous %}
+      <a class="td-btn td-btn-sm" href="?page={{ page_obj.previous_page_number }}&date={{ selected_date }}&status={{ selected_status }}">« ก่อนหน้า</a>
+    {% endif %}
+    <span class="td-btn td-btn-sm" style="pointer-events:none;">หน้า {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="td-btn td-btn-sm" href="?page={{ page_obj.next_page_number }}&date={{ selected_date }}&status={{ selected_status }}">ถัดไป »</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

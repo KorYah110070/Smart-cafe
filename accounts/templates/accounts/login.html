@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบ - Smart Cafe</title>
+  <style>
+    :root {
+      --red: #d62828;
+      --red-glow: rgba(214, 40, 40, 0.55);
+      --gold: #d9a24a;
+      --cream: #fbf3e7;
+      --ink: #f5ede7;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "Sarabun", Tahoma, sans-serif;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      background-color: #150e0e;
+      background-image:
+        linear-gradient(120deg, rgba(10,7,7,0.93) 0%, rgba(10,7,7,0.78) 45%, rgba(10,7,7,0.55) 100%),
+        url('{% static "images/hero-default.jpg" %}');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .wrapper {
+      display: flex;
+      align-items: center;
+      gap: 70px;
+      max-width: 980px;
+      width: 100%;
+    }
+
+    /* ---------- Brand side ---------- */
+    .brand-side {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .logo-ring {
+      width: 136px;
+      height: 136px;
+      border-radius: 50%;
+      border: 2px solid var(--red);
+      background: rgba(20, 10, 10, 0.45);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 22px var(--red-glow), 0 0 55px rgba(214,40,40,0.25);
+      margin-bottom: 22px;
+    }
+
+    .logo-ring svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--red);
+      fill: none;
+      filter: drop-shadow(0 0 6px var(--red-glow));
+      margin-bottom: 2px;
+    }
+
+    .logo-ring .script {
+      font-family: "Brush Script MT", "Segoe Script", cursive;
+      font-size: 24px;
+      color: #fff;
+      line-height: 1;
+      text-shadow: 0 0 8px var(--red-glow);
+    }
+
+    .logo-ring .sub {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--red);
+      margin-top: 3px;
+      font-weight: 700;
+    }
+
+    .brand-side h1 {
+      font-size: 27px;
+      margin: 0 0 10px;
+      font-weight: 700;
+    }
+
+    .brand-side h1 .accent { color: var(--red); }
+
+    .brand-side p.tagline {
+      color: #e3d2c8;
+      font-size: 13.5px;
+      max-width: 320px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .feature-divider {
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 22px 0 20px;
+      color: var(--red);
+    }
+    .feature-divider .line { flex: 1; height: 1px; background: rgba(255,255,255,0.18); }
+    .feature-divider svg { width: 16px; height: 16px; stroke: var(--red); fill: none; }
+
+    .features-row {
+      display: flex;
+      gap: 26px;
+      justify-content: center;
+    }
+
+    .feature-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      max-width: 100px;
+    }
+
+    .feature-item .f-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(214,40,40,0.5);
+      background: rgba(214,40,40,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feature-item .f-icon svg { width: 20px; height: 20px; stroke: var(--red); fill: none; }
+    .feature-item span { font-size: 11px; color: #e3d2c8; line-height: 1.4; }
+
+    /* ---------- Glass login card ---------- */
+    .login-card {
+      flex: 1;
+      max-width: 390px;
+      width: 100%;
+      background: rgba(24, 15, 15, 0.55);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 110, 110, 0.25);
+      border-radius: 22px;
+      padding: 34px 32px;
+      box-shadow: 0 0 45px rgba(214,40,40,0.18), 0 25px 60px rgba(0,0,0,0.55);
+    }
+
+    .login-card .card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .login-card .card-head svg {
+      width: 26px; height: 26px; stroke: var(--red); fill: none;
+      filter: drop-shadow(0 0 5px var(--red-glow));
+    }
+
+    .login-card .card-head h2 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+
+    .login-card .card-sub {
+      font-size: 12.5px;
+      color: #cdb9b0;
+      margin: 0 0 24px;
+    }
+
+    .field {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .field .icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #cdb9b0;
+      display: flex;
+    }
+
+    .field .icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+
+    .field input {
+      width: 100%;
+      padding: 12px 42px 12px 44px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: var(--ink);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .field input::placeholder { color: #a99287; }
+
+    .field input:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(214,40,40,0.18);
+    }
+
+    .toggle-eye {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #a99287;
+      cursor: pointer;
+      display: flex;
+      padding: 4px;
+    }
+    .toggle-eye svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin: 2px 0 22px;
+    }
+
+    .remember-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #cdb9b0;
+    }
+
+    .remember-wrap input { accent-color: var(--red); width: 14px; height: 14px; }
+
+    .row-between a { color: var(--gold); text-decoration: none; }
+    .row-between a:hover { text-decoration: underline; }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--red) 0%, #8e1414 100%);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 14.5px;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(214,40,40,0.35);
+      transition: filter 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-login:hover { filter: brightness(1.08); }
+
+    .helper-links {
+      text-align: center;
+      font-size: 12.5px;
+      margin-top: 20px;
+      color: #cdb9b0;
+    }
+
+    .helper-links a { color: var(--gold); text-decoration: none; font-weight: 600; }
+    .helper-links a:hover { text-decoration: underline; }
+
+    .divider-or {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+      color: #a99287;
+      font-size: 11.5px;
+    }
+    .divider-or .line { flex: 1; height: 1px; background: rgba(255,255,255,0.14); }
+
+    .btn-google {
+      width: 100%;
+      padding: 11px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.95);
+      color: #3c3c3c;
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: filter 0.15s ease;
+    }
+    .btn-google:hover { filter: brightness(0.96); }
+    .btn-google svg { width: 18px; height: 18px; }
+
+    .form-errors {
+      background: rgba(248, 215, 218, 0.15);
+      color: #ff9b9b;
+      border: 1px solid rgba(241, 174, 181, 0.4);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .field-errors {
+      color: #ff9b9b;
+      font-size: 12px;
+      margin: -10px 0 12px 8px;
+    }
+
+    @media (max-width: 760px) {
+      .wrapper { flex-direction: column; gap: 10px; }
+      .brand-side { display: none; }
+      .login-card { max-width: 400px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="brand-side">
+      <div class="logo-ring">
+        <svg viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 8H17V14C17 17.3137 14.3137 20 11 20H9C5.68629 20 3 17.3137 3 14V8Z"/>
+          <path d="M17 9H18.5C19.8807 9 21 10.1193 21 11.5C21 12.8807 19.8807 14 18.5 14H17"/>
+          <path d="M7 5C7 4 8 3.5 7.5 2.5" stroke-width="1.3"/>
+          <path d="M11 5C11 4 12 3.5 11.5 2.5" stroke-width="1.3"/>
+        </svg>
+        <div class="script">Smart</div>
+        <div class="sub">CAFE</div>
+      </div>
+      <h1>Welcome to <span class="accent">Smart Cafe</span></h1>
+      <p class="tagline">จองโต๊ะง่ายๆ พร้อมรับประสบการณ์คาเฟ่ที่ดีกว่า</p>
+
+      <div class="feature-divider">
+        <span class="line"></span>
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="3"/></svg>
+        <span class="line"></span>
+      </div>
+
+      <div class="features-row">
+        <div class="feature-item">
+          <span class="f-icon">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/>
+            </svg>
+          </span>
+          <span>จองโต๊ะง่าย<br>ไม่ยุ่งยาก</span>
+        </div>
+        <div class="feature-item">
+          <span class="f-icon">
+            <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3.5 14.5 9l6 .8-4.3 4.2 1 6-5.2-2.8-5.2 2.8 1-6-4.3-4.2 6-.8Z"/>
+            </svg>
+          </span>
+          <span>แนะนำเมนู<br>สุดพิเศษ</span>
+        </div>
+        <div class="feature-item">
+          <span class="f-icon">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 9h11v5.5A4.5 4.5 0 0 1 11.5 19H9.5A4.5 4.5 0 0 1 5 14.5V9Z"/><path d="M16 10.5h1.5a2 2 0 0 1 0 4H16"/>
+            </svg>
+          </span>
+          <span>บรรยากาศดี<br>เหมาะทุกโมเมนต์</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 8H17V14C17 17.3137 14.3137 20 11 20H9C5.68629 20 3 17.3137 3 14V8Z"/>
+          <path d="M17 9H18.5C19.8807 9 21 10.1193 21 11.5C21 12.8807 19.8807 14 18.5 14H17"/>
+        </svg>
+        <h2>LOGIN</h2>
+      </div>
+      <p class="card-sub">เข้าสู่ระบบเพื่อจองโต๊ะ ดูเมนู และรับคำแนะนำจาก AI</p>
+
+      {% if form.non_field_errors %}
+        <div class="form-errors">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+          <span class="icon">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.3-4 4.2-6 7.5-6s6.2 2 7.5 6"/>
+            </svg>
+          </span>
+          {{ form.username }}
+        </div>
+        {% if form.username.errors %}
+          <div class="field-errors">{{ form.username.errors|join:", " }}</div>
+        {% endif %}
+
+        <div class="field">
+          <span class="icon">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="10.5" width="15" height="9.5" rx="2"/><path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3"/>
+            </svg>
+          </span>
+          {{ form.password }}
+          <button type="button" class="toggle-eye" data-target="id_password" aria-label="แสดง/ซ่อนรหัสผ่าน">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/>
+            </svg>
+          </button>
+        </div>
+        {% if form.password.errors %}
+          <div class="field-errors">{{ form.password.errors|join:", " }}</div>
+        {% endif %}
+
+        <div class="row-between">
+          <label class="remember-wrap">
+            <input type="checkbox" name="remember_me" checked>
+            จดจำการเข้าสู่ระบบ
+          </label>
+          <a href="#">ลืมรหัสผ่าน?</a>
+        </div>
+
+        <button type="submit" class="btn-login">เข้าสู่ระบบ →</button>
+      </form>
+
+      {% if google_login_enabled %}
+        {% load socialaccount %}
+        <div class="divider-or">
+          <span class="line"></span>หรือ<span class="line"></span>
+        </div>
+        <a href="{% provider_login_url 'google' %}" class="btn-google">
+          <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.7 34.9 27 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+          เข้าสู่ระบบด้วย Google
+        </a>
+      {% endif %}
+
+      <div class="helper-links">
+        ยังไม่มีบัญชี? <a href="{% url 'accounts:register' %}">สมัครสมาชิก</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.toggle-eye').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var input = document.getElementById(btn.dataset.target);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+      });
+    });
+  </script>
+</body>
+</html>

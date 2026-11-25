@@ -1,0 +1,143 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}จัดการเมนู - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.menu-head-row { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:16px; }
+.cat-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+.cat-pill {
+  padding:8px 18px; border-radius:20px; font-size:13px; font-weight:700;
+  border:1.5px solid var(--border); color:var(--text-dim); background:transparent; cursor:pointer; font-family:inherit;
+}
+.cat-pill.active { background:var(--red); border-color:var(--red); color:#fff; }
+.cat-pill-wrap { position:relative; display:inline-flex; }
+.cat-pill-del {
+  position:absolute; top:-6px; right:-6px; z-index:2;
+  width:17px; height:17px; border-radius:50%;
+  background:var(--bg-elevated); border:1.5px solid var(--border);
+  color:var(--text-faint); display:flex; align-items:center; justify-content:center;
+  text-decoration:none;
+}
+.cat-pill-del svg { width:9px; height:9px; stroke:currentColor; fill:none; stroke-width:2.6; }
+.cat-pill-del:hover { background:var(--red-bright); border-color:var(--red-bright); color:#fff; }
+.menu-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:18px; }
+.menu-card {
+  position:relative; border-radius:16px; overflow:hidden; aspect-ratio:3/4;
+  background:var(--bg-panel); border:1px solid var(--border);
+}
+.menu-card img, .menu-card .no-image {
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+.menu-card .no-image {
+  display:flex; align-items:center; justify-content:center; color:var(--text-faint); background:var(--bg-elevated);
+}
+.menu-card .no-image svg { width:40px; height:40px; stroke:currentColor; fill:none; stroke-width:1.5; }
+.menu-card-overlay {
+  position:absolute; left:0; right:0; bottom:0;
+  background:linear-gradient(0deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 60%, transparent 100%);
+  padding:28px 14px 12px; color:#fff;
+}
+.menu-card-overlay .name { font-size:14.5px; font-weight:700; margin-bottom:2px; }
+.menu-card-overlay .price { font-size:13px; font-weight:700; color:var(--red-soft); }
+.menu-card-actions { position:absolute; right:10px; bottom:10px; display:flex; gap:6px; }
+.menu-icon-btn {
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(20,15,15,0.85); color:#fff; backdrop-filter:blur(4px);
+}
+.menu-icon-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+.menu-icon-btn.danger:hover { background:var(--red-bright); }
+.menu-icon-btn.edit:hover { background:var(--gold); color:#2b1a00; }
+.menu-badge-top {
+  position:absolute; top:10px; left:10px; z-index:2;
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:14px; font-size:10.5px; font-weight:700;
+}
+.menu-badge-rec { background:var(--gold); color:#2b1a00; }
+.menu-badge-off { background:rgba(0,0,0,0.75); color:var(--text-dim); border:1px solid var(--border); }
+.menu-badge-top svg { width:11px; height:11px; stroke:currentColor; fill:none; }
+{% endblock %}
+
+{% block content %}
+<div class="menu-head-row">
+  <div>
+    <h1>จัดการเมนู</h1>
+    <div class="page-sub">เพิ่ม/แก้ไข/ลบเมนูอาหารและเครื่องดื่ม</div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'menus:category_add' %}" class="td-btn">
+      <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;"><path d="M12 5v14M5 12h14"/></svg>
+      เพิ่มหมวดหมู่
+    </a>
+    <a href="{% url 'menus:item_add' %}" class="td-btn td-btn-solid">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;"><path d="M12 5v14M5 12h14"/></svg>
+      เพิ่มเมนู
+    </a>
+  </div>
+</div>
+
+<div class="cat-pills" id="catPills">
+  <button type="button" class="cat-pill active" data-cat="all">ทั้งหมด</button>
+  {% for c in categories %}
+    <span class="cat-pill-wrap">
+      <button type="button" class="cat-pill" data-cat="{{ c.id }}">{{ c.name }}</button>
+      <a href="{% url 'menus:category_delete' c.pk %}" class="cat-pill-del" title="ลบหมวดหมู่นี้">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M19 5 5 19"/></svg>
+      </a>
+    </span>
+  {% endfor %}
+</div>
+
+<div class="menu-grid" id="menuGrid">
+  {% for item in items %}
+    <div class="menu-card" data-cat="{{ item.category_id|default:'none' }}">
+      {% if item.is_recommended %}
+        <span class="menu-badge-top menu-badge-rec">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5 14.5 9l6 .8-4.3 4.2 1 6-5.2-2.8-5.2 2.8 1-6-4.3-4.2 6-.8Z"/></svg>
+          แนะนำ
+        </span>
+      {% elif not item.is_available %}
+        <span class="menu-badge-top menu-badge-off">ปิดขาย</span>
+      {% endif %}
+
+      {% if item.image %}
+        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+      {% else %}
+        <div class="no-image">
+          <svg viewBox="0 0 24 24"><path d="M5 9h11v5.5A4.5 4.5 0 0 1 11.5 19H9.5A4.5 4.5 0 0 1 5 14.5V9Z"/><path d="M16 10.5h1.5a2 2 0 0 1 0 4H16"/></svg>
+        </div>
+      {% endif %}
+
+      <div class="menu-card-overlay">
+        <div class="name">{{ item.name }}</div>
+        <div class="price">฿{{ item.price|floatformat:0 }}</div>
+      </div>
+
+      <div class="menu-card-actions">
+        <a class="menu-icon-btn edit" href="{% url 'menus:item_edit' item.pk %}" title="แก้ไข">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19 3 20l1-4Z"/></svg>
+        </a>
+        <a class="menu-icon-btn danger" href="{% url 'menus:item_delete' item.pk %}" title="ลบ">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 .8 12a1 1 0 0 0 1 .9h4.4a1 1 0 0 0 1-.9L17 7"/></svg>
+        </a>
+      </div>
+    </div>
+  {% empty %}
+    <div class="td-empty" style="grid-column:1/-1;">ยังไม่มีเมนูในระบบ กดปุ่ม "เพิ่มเมนู" เพื่อเริ่มต้น</div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.cat-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const cat = pill.dataset.cat;
+      document.querySelectorAll('.menu-card').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %}

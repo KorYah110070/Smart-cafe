@@ -1,0 +1,96 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}จัดการสมาชิก - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.filter-row select, .filter-row input { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); font-size: 13px; }
+.role-form, .toggle-form { display: inline; }
+.role-form select { padding: 4px 8px; font-size: 12px; border-radius: 8px; }
+{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/><circle cx="17" cy="8.5" r="2.3"/><path d="M15.5 13.3c2.2.3 4 2.3 4.2 4.9"/></svg>จัดการสมาชิก</h1>
+<div class="page-sub">รายชื่อผู้ใช้งานทั้งหมดในระบบ ({{ total_customers }} ลูกค้า, {{ total_staff }} พนักงาน)</div>
+
+<div style="margin-bottom:14px;">
+  <a href="{% url 'accounts:member_add' %}" class="td-btn td-btn-solid">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M12 5v14M5 12h14"/></svg>
+    เพิ่มพนักงาน
+  </a>
+</div>
+
+<form method="get" class="filter-row">
+  <input type="text" name="q" placeholder="ค้นหาชื่อผู้ใช้..." value="{{ search_query }}">
+  <select name="role">
+    <option value="">บทบาททั้งหมด</option>
+    {% for value, label in role_choices %}
+      <option value="{{ value }}" {% if value == selected_role %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="td-btn td-btn-sm">ค้นหา</button>
+  <a href="{% url 'accounts:member_list' %}" class="td-btn td-btn-sm">ล้างตัวกรอง</a>
+</form>
+
+<div class="td-card">
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead>
+        <tr><th>ผู้ใช้งาน</th><th>อีเมล</th><th>บทบาท</th><th>จำนวนการจอง</th><th>สถานะบัญชี</th><th>สมัครเมื่อ</th><th>จัดการ</th></tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+          <tr>
+            <td>{{ m.username }}</td>
+            <td>{{ m.email|default:"-" }}</td>
+            <td>
+              <form method="post" action="{% url 'accounts:member_role_update' m.pk %}" class="role-form">
+                {% csrf_token %}
+                <select name="role" onchange="this.form.submit()" {% if m == user %}disabled{% endif %}>
+                  {% for value, label in role_choices %}
+                    <option value="{{ value }}" {% if value == m.role %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+            <td>{{ m.reservations.count }}</td>
+            <td>
+              {% if m.is_active %}
+                <span class="td-badge" style="background:var(--status-served);">ใช้งานได้</span>
+              {% else %}
+                <span class="td-badge td-badge-cancelled">ถูกระงับ</span>
+              {% endif %}
+            </td>
+            <td>{{ m.date_joined|date:"d/m/Y" }}</td>
+            <td>
+              {% if m != user %}
+                <form method="post" action="{% url 'accounts:member_toggle' m.pk %}" class="toggle-form">
+                  {% csrf_token %}
+                  <button type="submit" class="td-btn td-btn-sm {% if m.is_active %}td-btn-danger{% endif %}">
+                    {% if m.is_active %}ระงับบัญชี{% else %}เปิดใช้งาน{% endif %}
+                  </button>
+                </form>
+              {% else %}
+                <span class="page-sub" style="margin:0;">(คุณ)</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="td-empty">ไม่พบสมาชิกตามเงื่อนไขที่เลือก</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if is_paginated %}
+  <div style="display:flex;gap:8px;margin-top:14px;">
+    {% if page_obj.has_previous %}
+      <a class="td-btn td-btn-sm" href="?page={{ page_obj.previous_page_number }}">« ก่อนหน้า</a>
+    {% endif %}
+    <span class="td-btn td-btn-sm" style="pointer-events:none;">หน้า {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="td-btn td-btn-sm" href="?page={{ page_obj.next_page_number }}">ถัดไป »</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

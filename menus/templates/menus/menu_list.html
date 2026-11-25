@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}เมนู{% endblock %}
+
+{% block extra_style %}
+.menu-img-wrap { position: relative; }
+.menu-img-expand-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer; padding: 0;
+}
+.menu-img-expand-btn:hover { background: rgba(0,0,0,0.75); }
+.img-lightbox-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  z-index: 200; align-items: center; justify-content: center; padding: 24px;
+}
+.img-lightbox-backdrop.open { display: flex; }
+.img-lightbox-img { max-width: 92vw; max-height: 88vh; border-radius: 10px; object-fit: contain; }
+.img-lightbox-close {
+  position: absolute; top: 18px; right: 22px;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.img-lightbox-close:hover { background: rgba(255,255,255,0.22); }
+{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">เมนูอาหารและเครื่องดื่ม</h3>
+<div class="row row-cols-1 row-cols-md-3 g-3">
+  {% for item in items %}
+  <div class="col">
+    <div class="card h-100">
+      {% if item.image %}
+        <div class="menu-img-wrap">
+          <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height:160px;object-fit:cover;width:100%;">
+          <button type="button" class="menu-img-expand-btn" title="ดูรูปเต็ม" onclick="openImageLightbox('{{ item.image.url|escapejs }}', '{{ item.name|escapejs }}')">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke:currentColor;fill:none;"><path d="M9 3H4v5M15 3h5v5M9 21H4v-5M15 21h5v-5"/></svg>
+          </button>
+        </div>
+      {% endif %}
+      <div class="card-body">
+        <h5 class="card-title">{{ item.name }}{% if item.is_recommended %} <span class="badge" style="background:var(--gold);color:#2b1a00;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px;vertical-align:-1px;margin-right:2px;"><path d="M12 3.5 14.5 9l6 .8-4.3 4.2 1 6-5.2-2.8-5.2 2.8 1-6-4.3-4.2 6-.8Z"/></svg>แนะนำ</span>{% endif %}</h5>
+        <p class="card-text text-muted">{{ item.category }}</p>
+        <p class="card-text">{{ item.description }}</p>
+        <p class="fw-bold">{{ item.price }} บาท</p>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p>ยังไม่มีเมนูในระบบ (เพิ่มได้ที่ Django Admin)</p>
+  {% endfor %}
+</div>
+
+<div class="img-lightbox-backdrop" id="imgLightbox" onclick="if(event.target===this) closeImageLightbox()">
+  <button type="button" class="img-lightbox-close" onclick="closeImageLightbox()">✕</button>
+  <img src="" alt="" class="img-lightbox-img" id="imgLightboxImg">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openImageLightbox(url, name) {
+    var img = document.getElementById('imgLightboxImg');
+    img.src = url;
+    img.alt = name;
+    document.getElementById('imgLightbox').classList.add('open');
+  }
+  function closeImageLightbox() {
+    document.getElementById('imgLightbox').classList.remove('open');
+    document.getElementById('imgLightboxImg').src = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeImageLightbox();
+  });
+</script>
+{% endblock %}

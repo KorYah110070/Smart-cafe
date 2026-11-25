@@ -1,0 +1,5 @@
+Django==5.0.9
+Pillow>=10.0
+django-allauth==65.22.1
+# ตอนใช้งานจริงกับ PostgreSQL ตามสไลด์ ให้ติดตั้งเพิ่มและตั้ง env var USE_POSTGRES=True
+# psycopg2-binary>=2.9

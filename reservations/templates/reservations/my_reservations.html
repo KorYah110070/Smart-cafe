@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}การจองของฉัน{% endblock %}
+{% block content %}
+<h3 class="mb-3">การจองของฉัน</h3>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>วันที่</th><th>จำนวนคน</th><th>โต๊ะ</th><th>สถานะ</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in reservations %}
+    <tr>
+      <td>{{ r.reservation_date }}</td>
+      <td>{{ r.party_size }}</td>
+      <td>{{ r.table_numbers_display }}{% if r.is_combined %} (รวมโต๊ะ){% endif %}</td>
+      <td>{{ r.get_status_display }}</td>
+      <td>
+        {% if r.is_editable %}
+          <a href="{% url 'reservations:edit' r.pk %}" class="btn btn-sm btn-outline-light">แก้ไข</a>
+          <form method="post" action="{% url 'reservations:cancel' r.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit">ยกเลิก</button>
+          </form>
+          <a href="{% url 'orders:create' r.pk %}" class="btn btn-sm btn-outline-primary">สั่งเมนู</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">ยังไม่มีการจอง</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}ชุดโต๊ะรวม - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><path d="M9 15 15 9"/><path d="M13.5 6.5l1-1a3 3 0 1 1 4 4l-1 1"/><path d="M10.5 17.5l-1 1a3 3 0 1 1-4-4l1-1"/></svg>ชุดโต๊ะรวม (Table Group)</h1>
+<div class="page-sub">กำหนดว่าโต๊ะใดสามารถรวมกันได้จริงในทางกายภาพ สำหรับฟีเจอร์แนะนำโต๊ะอัตโนมัติ</div>
+
+<div style="margin-bottom:16px;">
+  <a href="{% url 'tables:group_add' %}" class="td-btn td-btn-solid">+ สร้างชุดโต๊ะรวม</a>
+</div>
+
+<div class="td-card">
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead>
+        <tr><th>ชื่อชุดโต๊ะ</th><th>โต๊ะในชุด</th><th>ความจุรวม</th><th>สถานะ</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for g in groups %}
+          <tr>
+            <td>{{ g.group_name }}</td>
+            <td>{% for t in g.tables.all %}T{{ t.table_number }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+            <td>{{ g.total_capacity }} ที่นั่ง</td>
+            <td>
+              {% if g.all_tables_available %}
+                <span class="td-badge td-badge-available">พร้อมใช้งาน</span>
+              {% else %}
+                <span class="td-badge td-badge-reserved">มีโต๊ะไม่ว่าง</span>
+              {% endif %}
+            </td>
+            <td><a class="td-btn td-btn-sm td-btn-danger" href="{% url 'tables:group_delete' g.pk %}">ลบ</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="td-empty">ยังไม่มีชุดโต๊ะรวม</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

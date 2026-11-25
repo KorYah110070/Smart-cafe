@@ -1,0 +1,99 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}สถิติยอดขาย - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.period-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.period-tabs a {
+  padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 700;
+  border: 1.5px solid var(--border); color: var(--text-dim);
+}
+.period-tabs a.active { background: var(--red); border-color: var(--red); color: #fff; }
+.compare-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; }
+.compare-up { color: var(--status-served); font-weight: 700; }
+.compare-down { color: var(--red-bright); font-weight: 700; }
+.compare-flat { color: var(--text-faint); }
+{% endblock %}
+
+{% block content %}
+<div class="head-row-sales" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:6px;">
+  <div>
+    <h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><path d="M4 16l5-5 4 4 7-8"/><path d="M15 6.5h5V11.5"/></svg>สถิติยอดขาย</h1>
+    <div class="page-sub">ภาพรวมยอดขายของร้าน - {{ period_label }}</div>
+  </div>
+  <a class="td-btn td-btn-solid" href="{% url 'dashboard:sales_report_download' %}?period={{ period }}">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
+    ดาวน์โหลดรายงาน (CSV)
+  </a>
+</div>
+
+<div class="period-tabs">
+  <a href="?period=daily" class="{% if period == 'daily' %}active{% endif %}">รายวัน</a>
+  <a href="?period=monthly" class="{% if period == 'monthly' %}active{% endif %}">รายเดือน</a>
+</div>
+
+<div class="td-stat-row">
+  <div class="td-stat-tile">
+    <div class="num">฿{{ total_sales|floatformat:2 }}</div>
+    <div class="label">ยอดขายรวม</div>
+    <div class="compare-row">
+      {% if change_pct is None %}
+        <span class="compare-flat">ไม่มีข้อมูลช่วงก่อนหน้า</span>
+      {% elif change_pct > 0 %}
+        <span class="compare-up">▲ {{ change_pct|floatformat:1 }}%</span> <span class="compare-flat">จากช่วงก่อนหน้า</span>
+      {% elif change_pct < 0 %}
+        <span class="compare-down">▼ {{ change_pct|floatformat:1 }}%</span> <span class="compare-flat">จากช่วงก่อนหน้า</span>
+      {% else %}
+        <span class="compare-flat">เท่าช่วงก่อนหน้า</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="td-stat-tile"><div class="num">{{ order_count }}</div><div class="label">จำนวนออเดอร์</div></div>
+  <div class="td-stat-tile"><div class="num">฿{{ avg_per_order|floatformat:2 }}</div><div class="label">ยอดขายเฉลี่ยต่อออเดอร์</div></div>
+  <div class="td-stat-tile"><div class="num">฿{{ prev_total_sales|floatformat:2 }}</div><div class="label">ยอดขายช่วงก่อนหน้า</div></div>
+</div>
+
+<div class="td-card" style="margin-top:20px;">
+  <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><path d="M7 4h10v3.5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4.8a1.8 1.8 0 0 0 0 3.6H6.3M17 5h2.2a1.8 1.8 0 0 1 0 3.6H17.7"/><path d="M12 11.5V15M9 19.5h6M10 15.5h4l.6 4H9.4Z"/></svg>เมนูขายดีที่สุด</h2></div>
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead><tr><th>ลำดับ</th><th>เมนู</th><th>จำนวนที่ขายได้</th><th>ยอดขาย</th></tr></thead>
+      <tbody>
+        {% for row in best_sellers %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ row.name }}</td>
+            <td><span class="td-badge td-badge-served">{{ row.qty }} รายการ</span></td>
+            <td>฿{{ row.revenue|floatformat:2 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="td-empty">ยังไม่มีออเดอร์ในช่วงเวลานี้</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="td-card" style="margin-top:18px;">
+  <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><path d="M6.5 3.5h11v17l-2.5-1.6-2 1.6-2-1.6-2 1.6-2.5-1.6z"/><path d="M9 8h6M9 11.5h6M9 15h4"/></svg>รายการออเดอร์ ({{ period_label }})</h2></div>
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead><tr><th>Order ID</th><th>วันที่/เวลา</th><th>ประเภท</th><th>ลูกค้า</th><th>สถานะ</th><th>ชำระเงิน</th><th>ยอดรวม</th></tr></thead>
+      <tbody>
+        {% for o in orders %}
+          <tr>
+            <td>#{{ o.id }}</td>
+            <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ o.get_order_type_display }}</td>
+            <td>{{ o.customer_display_name }}</td>
+            <td><span class="td-badge td-badge-{{ o.status }}">{{ o.get_status_display }}</span></td>
+            <td>{% if o.is_paid %}{{ o.get_payment_method_display|default:"จ่ายแล้ว" }}{% else %}ยังไม่จ่าย{% endif %}</td>
+            <td>฿{{ o.total_price|floatformat:2 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="td-empty">ยังไม่มีออเดอร์ในช่วงเวลานี้</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

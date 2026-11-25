@@ -1,0 +1,27 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}เพิ่มพนักงาน - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/><path d="M16 7v4M18 9h-4"/></svg>เพิ่มพนักงาน/แอดมิน</h1>
+<div class="page-sub">สร้างบัญชีให้พนักงานเสิร์ฟหรือแอดมินคนใหม่โดยตรง (ไม่ต้องให้ไปสมัครสมาชิกเอง)</div>
+
+<div class="td-card" style="max-width:480px;margin-top:14px;">
+  <div class="td-card-body">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="td-field">
+          <label>{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="page-sub" style="margin:4px 0 0;">{{ field.help_text }}</div>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="td-btn td-btn-solid">บันทึก</button>
+        <a href="{% url 'accounts:member_list' %}" class="td-btn">ยกเลิก</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}จัดการโต๊ะ - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><rect x="3.5" y="4" width="17" height="12" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M7 16v3M17 16v3"/></svg>จัดการโต๊ะ</h1>
+<div class="page-sub">เพิ่ม/แก้ไข/ลบโต๊ะ และกำหนดชุดโต๊ะที่รวมกันได้</div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;">
+  <button type="button" class="td-btn td-btn-solid" onclick="openAddTableModal()">+ เพิ่มโต๊ะ</button>
+  <a href="{% url 'tables:group_list' %}" class="td-btn">
+    <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M9 15 15 9"/><path d="M13.5 6.5l1-1a3 3 0 1 1 4 4l-1 1"/><path d="M10.5 17.5l-1 1a3 3 0 1 1-4-4l1-1"/></svg>
+    จัดการชุดโต๊ะรวม
+  </a>
+</div>
+
+<div class="td-card">
+  <div class="td-card-body" style="padding:0;">
+    <table class="td-table">
+      <thead>
+        <tr><th>โต๊ะ</th><th>โซน</th><th>ความจุ</th><th>รูปทรง</th><th>สถานะ</th><th>ตำแหน่ง (x, y)</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for t in tables %}
+          <tr>
+            <td>T{{ t.table_number }}</td>
+            <td>{{ t.zone|default:"-" }}</td>
+            <td>{{ t.capacity }} คน</td>
+            <td>{{ t.get_shape_display }}</td>
+            <td><span class="td-badge td-badge-{{ t.status }}">{{ t.get_status_display }}</span></td>
+            <td style="color:var(--text-faint);">{{ t.pos_x|floatformat:0 }}%, {{ t.pos_y|floatformat:0 }}%</td>
+            <td style="display:flex;gap:6px;">
+              <a class="td-btn td-btn-sm" href="{% url 'tables:table_edit' t.pk %}">แก้ไข</a>
+              <a class="td-btn td-btn-sm td-btn-danger" href="{% url 'tables:table_delete' t.pk %}">ลบ</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="td-empty">ยังไม่มีโต๊ะในระบบ</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="td-card" style="margin-top:18px;">
+  <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><path d="M9 15 15 9"/><path d="M13.5 6.5l1-1a3 3 0 1 1 4 4l-1 1"/><path d="M10.5 17.5l-1 1a3 3 0 1 1-4-4l1-1"/></svg>ชุดโต๊ะรวม (Table Group)</h2></div>
+  <div class="td-card-body">
+    {% for g in groups %}
+      <div class="res-row" style="padding:8px 0;">
+        <span>{{ g.group_name }}</span>
+        <span>โต๊ะ: {% for t in g.tables.all %}T{{ t.table_number }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+        <span>รวม {{ g.total_capacity }} ที่นั่ง</span>
+      </div>
+    {% empty %}
+      <div class="td-empty">ยังไม่มีชุดโต๊ะรวม</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal: เพิ่มโต๊ะ -->
+<div class="td-modal-backdrop" id="addTableModal">
+  <div class="td-modal">
+    <div class="td-modal-head">
+      <h3>+ เพิ่มโต๊ะใหม่</h3>
+      <button class="td-modal-close" onclick="closeAddTableModal()">✕</button>
+    </div>
+    <form method="post" action="{% url 'tables:table_add' %}" class="td-modal-body">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'tables:manage' %}">
+      <div class="td-field">
+        <label>หมายเลขโต๊ะ</label>
+        <input type="number" name="table_number" required>
+      </div>
+      <div class="td-field">
+        <label>โซน</label>
+        <input type="text" name="zone" placeholder="เช่น A, B, C">
+      </div>
+      <div class="td-field">
+        <label>จำนวนที่นั่ง</label>
+        <input type="number" name="capacity" value="4" required>
+      </div>
+      <div class="td-field">
+        <label>รูปทรงโต๊ะ</label>
+        <select name="shape">
+          <option value="square">◻ จัตุรัส</option>
+          <option value="rect">▭ ผืนผ้า</option>
+          <option value="round">◯ กลม</option>
+        </select>
+      </div>
+      <div class="td-field">
+        <label>สถานะเริ่มต้น</label>
+        <select name="status">
+          <option value="available">ว่าง</option>
+          <option value="reserved">จองแล้ว</option>
+          <option value="preparing">กำลังเตรียม</option>
+          <option value="served">เสิร์ฟแล้ว</option>
+        </select>
+      </div>
+      <input type="hidden" name="pos_x" value="50">
+      <input type="hidden" name="pos_y" value="50">
+      <button type="submit" class="td-btn td-btn-solid" style="width:100%;">บันทึก</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openAddTableModal() { document.getElementById('addTableModal').classList.add('open'); }
+  function closeAddTableModal() { document.getElementById('addTableModal').classList.remove('open'); }
+</script>
+{% endblock %}

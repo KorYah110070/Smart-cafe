@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}โปรโมชั่น{% endblock %}
+{% block content %}
+<h3 class="mb-3">โปรโมชั่นปัจจุบัน</h3>
+<div class="row row-cols-1 row-cols-md-2 g-3">
+  {% for promo in promotions %}
+  <div class="col">
+    <div class="card h-100">
+      {% if promo.image %}
+        <img src="{{ promo.image.url }}" class="card-img-top" alt="{{ promo.title }}" style="height:160px;object-fit:cover;">
+      {% endif %}
+      <div class="card-body">
+        <h5 class="card-title">{{ promo.title }}</h5>
+        <p class="card-text">{{ promo.description }}</p>
+        <p class="fw-bold">ลด {{ promo.discount_percent }}%</p>
+        <p class="text-muted small">{{ promo.start_date }} - {{ promo.end_date }}</p>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p>ยังไม่มีโปรโมชั่นในขณะนี้</p>
+  {% endfor %}
+</div>
+{% endblock %}

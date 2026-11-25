@@ -1,0 +1,399 @@
+/*
+  Smart Cafe - Dark Theme (ใช้ร่วมกันทั้งฝั่งลูกค้าและฝั่งแอดมิน/พนักงาน)
+  โทนสี: ดำอมแดง (maroon/black) + ทอง สำหรับแบรนด์ ตามธีมหน้า login เดิม
+*/
+
+:root {
+  --bg: #121011;
+  --bg-elevated: #1a1517;
+  --bg-panel: #1f191b;
+  --bg-panel-2: #251d20;
+  --border: #3a2c2c;
+  --border-soft: #2b2224;
+
+  --red: #d62828;
+  --red-bright: #e6453c;
+  --red-dark: #8e1414;
+  --red-tint: rgba(214, 40, 40, 0.18);
+  --red-mid: #e15757;
+  --red-soft: #ff9b9b;
+  --gold: #d9a24a;
+  --gold-soft: rgba(217, 162, 74, 0.15);
+
+  --text: #f5ede7;
+  --text-dim: #b8a89f;
+  --text-faint: #7d6f68;
+
+  --status-available: #8d8d8d;
+  --status-reserved: #f2994a;
+  --status-preparing: #e6453c;
+  --status-served: #27ae60;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body.theme-dark {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Sarabun", Tahoma, sans-serif;
+}
+
+.theme-dark a { color: inherit; text-decoration: none; }
+.theme-dark button { font-family: inherit; }
+
+/* ---------- Topbar (ใช้ร่วมกันทั้งแอดมินและลูกค้า) ---------- */
+.td-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.td-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.td-brand .badge-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--red-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.td-brand .sub {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.td-topbar .right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.td-clock { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+.td-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--red-bright);
+}
+
+.td-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.td-btn:hover { border-color: var(--red); }
+.td-btn-solid { background: var(--red); border-color: var(--red); color: #fff; }
+.td-btn-solid:hover { background: var(--red-bright); }
+.td-btn-outline { background: transparent; border-color: var(--red); color: var(--red-bright); }
+.td-btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 16px; }
+.td-btn-danger { border-color: var(--red-bright); color: var(--red-bright); background: transparent; }
+
+/* ---------- Sidebar (ใช้ร่วมกันทั้งแอดมินและลูกค้า) ---------- */
+.td-sidebar {
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.td-side-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.td-side-item .icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--bg-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.td-side-item:hover { background: var(--bg-panel); color: var(--text); }
+.td-side-item.active { background: var(--red-tint); color: var(--text); }
+.td-side-item.active .icon { background: var(--red); color: #fff; }
+.td-side-item.locked { opacity: 0.45; }
+
+/* ---------- Cards / panels ---------- */
+.td-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.td-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.td-card-head h2, .td-card-head h1 { margin: 0; font-size: 15px; }
+.td-card-body { padding: 18px; }
+
+/* ---------- Tables ---------- */
+.td-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.td-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--text-faint);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.td-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+}
+.td-table tr:last-child td { border-bottom: none; }
+.td-table tr:hover td { background: var(--bg-panel-2); }
+
+/* ---------- Badges ---------- */
+.td-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.td-badge-available { background: var(--status-available); }
+.td-badge-reserved { background: var(--status-reserved); color: #2b1a00; }
+.td-badge-preparing { background: var(--status-preparing); }
+.td-badge-served { background: var(--status-served); }
+.td-badge-cancelled { background: #555; }
+.td-badge-completed { background: #3d5a80; }
+.td-badge-pending { background: var(--gold); color: #2b1a00; }
+.td-badge-confirmed { background: #3d5a80; }
+.td-badge-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+
+/* ---------- Forms ---------- */
+.td-field { margin-bottom: 14px; }
+.td-field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; font-weight: 600; }
+.td-field input, .td-field select, .td-field textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+}
+.td-field input:focus, .td-field select:focus, .td-field textarea:focus {
+  outline: none;
+  border-color: var(--red);
+}
+.td-field .errorlist { color: var(--red-bright); font-size: 12px; list-style: none; padding: 0; margin: 4px 0 0; }
+.td-checkbox-row { display: flex; align-items: center; gap: 8px; }
+.td-checkbox-row input { width: auto; }
+
+/* ---------- Stat tiles ---------- */
+.td-stat-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.td-stat-tile {
+  flex: 1;
+  min-width: 110px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.td-stat-tile .num { font-size: 24px; font-weight: 800; }
+.td-stat-tile .label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+/* ---------- Modal ---------- */
+.td-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.td-modal-backdrop.open { display: flex; }
+.td-modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 420px;
+  max-width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.td-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.td-modal-head h3 { margin: 0; font-size: 15px; }
+.td-modal-close { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
+.td-modal-body { padding: 18px; }
+
+/* ---------- Legend ---------- */
+.td-legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--text-dim); }
+.td-legend .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+/* ---------- Table chips on canvas ---------- */
+.td-table-chip {
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+.td-table-chip small { font-weight: 400; font-size: 9px; opacity: 0.85; }
+.td-table-chip.draggable { cursor: grab; }
+.td-table-chip.dragging { cursor: grabbing; opacity: 0.85; outline: 2px dashed #fff; }
+
+/* รูปทรงโต๊ะ: จัตุรัส (ค่าเริ่มต้น กำหนด border-radius ไว้แล้วที่ .td-table-chip) / ผืนผ้า / กลม */
+.td-table-chip.shape-round { border-radius: 50%; }
+.td-table-chip.shape-rect { border-radius: 10px; }
+
+.td-floor-canvas {
+  position: relative;
+  background: linear-gradient(160deg, #241a1b 0%, #1a1416 100%);
+  border-radius: var(--radius);
+  min-height: 420px;
+  overflow: visible;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ---------- สิ่งกีดขวาง/จุดสำคัญบนผังร้าน (บาร์, ทางเข้า-ออก, เวที, บาร์น้ำ, ทางหนีไฟ, บันได, แคชเชียร์) ---------- */
+.td-landmark-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  border: 1.5px dashed var(--text-faint);
+  background: var(--bg-panel-2);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  user-select: none;
+  padding: 4px;
+  box-sizing: border-box;
+}
+.td-landmark-chip .lm-icon { font-size: 18px; line-height: 1; }
+.td-landmark-chip .lm-label { font-size: 10px; line-height: 1.2; }
+.td-landmark-chip.draggable { cursor: grab; }
+.td-landmark-chip.dragging { cursor: grabbing; opacity: 0.8; outline: 2px dashed var(--gold); }
+
+.td-landmark-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.td-landmark-toolbar button {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-panel-2); border: 1px solid var(--border);
+  color: var(--text-dim); border-radius: 20px; padding: 6px 12px;
+  font-size: 12px; font-family: inherit; cursor: pointer;
+}
+.td-landmark-toolbar button:hover { color: var(--text); border-color: var(--gold); }
+
+/* ปุ่มลบจุดสำคัญ - โชว์เฉพาะตอนอยู่ในโหมดแก้ไขผังร้าน */
+.td-landmark-delete {
+  position: absolute; top: -8px; right: -8px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--red-bright); color: #fff; border: none;
+  font-size: 11px; line-height: 20px; text-align: center; padding: 0;
+  cursor: pointer; display: none;
+}
+.editing-mode .td-landmark-delete { display: block; }
+
+/* ปุ่มแก้ไขรูปทรง/จำนวนที่นั่งของโต๊ะ (มุมบนซ้าย) - โชว์เฉพาะตอนอยู่ในโหมดแก้ไขผังร้าน */
+.td-table-edit-btn {
+  position: absolute; top: -8px; left: -8px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--gold); color: #2b1a00; border: none;
+  padding: 0; cursor: pointer; display: none;
+  align-items: center; justify-content: center;
+}
+.editing-mode .td-table-edit-btn { display: flex; }
+
+/* จุดลากปรับขนาด (มุมล่างขวา) - โชว์เฉพาะตอนอยู่ในโหมดแก้ไขผังร้าน */
+.td-resize-handle {
+  position: absolute; right: -6px; bottom: -6px;
+  width: 14px; height: 14px; border-radius: 4px;
+  background: var(--gold); border: 2px solid var(--bg);
+  cursor: nwse-resize; display: none;
+  touch-action: none;
+}
+.editing-mode .td-resize-handle { display: block; }
+
+/* ---------- Empty state ---------- */
+.td-empty { text-align: center; padding: 40px 20px; color: var(--text-faint); font-size: 13px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .td-layout { grid-template-columns: 1fr !important; }
+  .td-sidebar { flex-direction: row; flex-wrap: wrap; border-right: none; border-top: 1px solid var(--border); }
+}

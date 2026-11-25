@@ -1,0 +1,25 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}ลบหมวดหมู่ - Smart Cafe{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 .8 12a1 1 0 0 0 1 .9h4.4a1 1 0 0 0 1-.9L17 7"/></svg>ลบหมวดหมู่ "{{ object.name }}"</h1>
+
+<div class="td-card" style="max-width:480px;">
+  <div class="td-card-body">
+    <p>ยืนยันการลบหมวดหมู่ "{{ object.name }}"? การลบนี้ไม่สามารถย้อนกลับได้</p>
+    {% if object.items.count %}
+      <p style="color:var(--text-dim);font-size:13px;">
+        หมายเหตุ: ขณะนี้มีเมนู {{ object.items.count }} รายการอยู่ในหมวดหมู่นี้
+        เมนูเหล่านั้นจะ<strong>ไม่ถูกลบ</strong> แต่จะกลายเป็น "ไม่มีหมวดหมู่"
+      </p>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="td-btn td-btn-danger">ยืนยันลบ</button>
+        <a href="{% url 'menus:manage' %}" class="td-btn">ยกเลิก</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

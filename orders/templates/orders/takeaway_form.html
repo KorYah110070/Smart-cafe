@@ -1,0 +1,68 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}ซื้อกลับ - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.qty-input {
+  width:72px; padding:6px 8px; border-radius:8px; border:1px solid var(--border);
+  background:var(--bg-elevated); color:var(--text); font-family:inherit; text-align:center;
+}
+.guest-row { margin-bottom:16px; max-width:360px; }
+.guest-row label { display:block; font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:6px; }
+.guest-row input {
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+  background:var(--bg-elevated); color:var(--text); font-family:inherit; font-size:14px;
+}
+.payment-row { margin-top:16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.payment-row label { font-size:13px; font-weight:700; color:var(--text-dim); }
+.payment-row select {
+  padding:8px 12px; border-radius:10px; border:1px solid var(--border);
+  background:var(--bg-elevated); color:var(--text); font-family:inherit; font-size:13.5px;
+}
+{% endblock %}
+
+{% block content %}
+<h1>
+  <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><path d="M4 8h16l-1.5 11a2 2 0 0 1-2 2H7.5a2 2 0 0 1-2-2L4 8Z"/><path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2"/></svg>
+  ซื้อกลับ (Takeaway)
+</h1>
+<div class="page-sub">ขายหน้าร้านแบบไม่ผูกโต๊ะ/ไม่ต้องจอง สั่ง-จ่าย-จบในหน้าเดียว</div>
+
+<form method="post" style="margin-top:12px;">
+  {% csrf_token %}
+  <div class="guest-row">
+    <label for="id_guest_name">ชื่อลูกค้า (ไม่บังคับ)</label>
+    <input type="text" name="guest_name" id="id_guest_name" maxlength="150" placeholder="เช่น คุณสมชาย (เว้นว่างได้)">
+  </div>
+
+  <div class="td-card">
+    <div class="td-card-body" style="padding:0;">
+      <table class="td-table">
+        <thead><tr><th>เมนู</th><th>ราคา</th><th>จำนวน</th></tr></thead>
+        <tbody>
+          {% for item in menu_items %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>฿{{ item.price }}</td>
+            <td><input type="number" min="0" value="0" name="qty_{{ item.id }}" class="qty-input"></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="td-empty">ยังไม่มีเมนูในระบบ</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="payment-row">
+    <label for="id_payment_method">วิธีชำระเงิน</label>
+    <select name="payment_method" id="id_payment_method" required>
+      <option value="">-- เลือกวิธีชำระเงิน --</option>
+      {% for value, label in payment_choices %}
+        <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <button type="submit" class="td-btn td-btn-solid" style="margin-top:16px;">บันทึกการขายและชำระเงิน</button>
+</form>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "dashboard/base_admin.html" %}
+{% block title %}ตั้งค่าระบบ - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 1000px) { .settings-grid { grid-template-columns: 1fr; } }
+.logo-preview { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border); margin-bottom: 10px; display: block; }
+{% endblock %}
+
+{% block content %}
+<h1><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;stroke:currentColor;fill:none;vertical-align:-4px;margin-right:4px;"><circle cx="12" cy="12" r="2.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.4-2-3.4-2.2.9a7.5 7.5 0 0 0-2.6-1.5L14.1 2h-4l-.4 2.1a7.5 7.5 0 0 0-2.6 1.5l-2.2-.9-2 3.4 1.9 1.4a7.6 7.6 0 0 0 0 3l-1.9 1.4 2 3.4 2.2-.9a7.5 7.5 0 0 0 2.6 1.5l.4 2.1h4l.4-2.1a7.5 7.5 0 0 0 2.6-1.5l2.2.9 2-3.4-1.9-1.4Z"/></svg>ตั้งค่าระบบ</h1>
+<div class="page-sub">ข้อมูลร้านและข้อมูลผู้ดูแลระบบ</div>
+
+<div class="settings-grid">
+  <div class="td-card">
+    <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><path d="M5 9h11v5.5A4.5 4.5 0 0 1 11.5 19H9.5A4.5 4.5 0 0 1 5 14.5V9Z"/><path d="M16 10.5h1.5a2 2 0 0 1 0 4H16"/><path d="M8 5.5c0-.6.4-1 .8-1.5M11.5 5.5c0-.6.4-1 .8-1.5"/></svg>ข้อมูลร้าน</h2></div>
+    <div class="td-card-body">
+      {% if site_settings.logo %}
+        <img class="logo-preview" src="{{ site_settings.logo.url }}" alt="โลโก้ร้าน">
+      {% endif %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="form_name" value="site_settings">
+        {% for field in settings_form %}
+          <div class="td-field">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <button type="submit" class="td-btn td-btn-solid">บันทึกข้อมูลร้าน</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="td-card">
+      <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><circle cx="12" cy="8.5" r="3.3"/><path d="M5.5 20c0-3.6 2.9-6.3 6.5-6.3s6.5 2.7 6.5 6.3"/></svg>ข้อมูลผู้ดูแลระบบ</h2></div>
+      <div class="td-card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="form_name" value="profile">
+          {% for field in profile_form %}
+            <div class="td-field">
+              <label>{{ field.label }}</label>
+              {{ field }}
+              {{ field.errors }}
+            </div>
+          {% endfor %}
+          <button type="submit" class="td-btn td-btn-solid">บันทึกข้อมูลผู้ใช้</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="td-card" style="margin-top:18px;">
+      <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>เปลี่ยนรหัสผ่าน</h2></div>
+      <div class="td-card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="form_name" value="password">
+          {% for field in password_form %}
+            <div class="td-field">
+              <label>{{ field.label }}</label>
+              {{ field }}
+              {{ field.errors }}
+            </div>
+          {% endfor %}
+          <button type="submit" class="td-btn td-btn-solid">เปลี่ยนรหัสผ่าน</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

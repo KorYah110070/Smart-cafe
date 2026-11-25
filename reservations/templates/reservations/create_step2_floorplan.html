@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}จองโต๊ะ - เลือกโต๊ะ{% endblock %}
+{% block content %}
+<style>
+  :root {
+    --fc-red: #d62828;
+    --fc-red-dark: #8e1414;
+    --fc-border: #3a2c2c;
+    --fc-bg-elevated: #1a1517;
+    --fc-bg-panel: #1f191b;
+    --fc-gray: #b8a89f;
+    --fc-status-busy: #6b5a52;
+  }
+  .res-steps { display:flex; gap:8px; margin-bottom:18px; font-size:12.5px; color:var(--text-dim); }
+  .res-steps span.active { color:var(--gold); font-weight:700; }
+  .res-steps a { color:var(--text-dim); text-decoration:underline; }
+
+  .fp-header {
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+    background: linear-gradient(135deg, var(--fc-red) 0%, var(--fc-red-dark) 100%);
+    color:#fff; padding:14px 20px; border-radius:14px 14px 0 0;
+  }
+  .fp-header h4 { margin:0; font-size:16px; }
+  .fp-legend { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; padding:14px 20px 0; color:var(--fc-gray); }
+  .fp-legend .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+
+  .floor-canvas {
+    position: relative;
+    background: linear-gradient(160deg, #241a1b 0%, #1a1416 100%);
+    border-radius: 0 0 14px 14px;
+    min-height: 420px;
+    overflow: visible;
+    margin: 14px 20px 20px;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .table-chip-wrap { position: absolute; transform: translate(-50%, -50%); }
+  .table-chip {
+    border-radius: 12px;
+    border: 2px solid #6b5a52;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-weight:700; font-size:12px; text-align:center; user-select:none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    color:#fff; background:#55484388;
+  }
+  .table-chip.shape-round { border-radius:50%; }
+  .table-chip.shape-rect { border-radius:10px; }
+  .table-chip small { font-weight:400; font-size:9px; margin-top:1px; }
+
+  .table-chip.available { background:#2e7d4f; border-color:#3fae6c; cursor:pointer; }
+  .table-chip.available:hover { filter:brightness(1.15); }
+  .table-chip.available.selected { background:var(--fc-red); border-color:#ffb199; box-shadow:0 0 0 3px rgba(214,40,40,0.4); }
+  .table-chip.busy { background:#3a3233; border-color:#5a4d48; color:var(--fc-gray); cursor:not-allowed; opacity:0.75; }
+
+  .landmark-chip {
+    width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; border-radius:10px; border:1.5px dashed var(--fc-gray); background:var(--fc-bg-panel);
+    color:var(--fc-gray); font-size:11px; font-weight:600; text-align:center; user-select:none; padding:4px; box-sizing:border-box;
+  }
+  .landmark-chip .lm-icon { font-size:18px; line-height:1; }
+  .landmark-chip .lm-label { font-size:10px; line-height:1.2; }
+
+  .booking-panel {
+    position: sticky; bottom: 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display:flex; flex-wrap:wrap; gap:16px; align-items:center;
+  }
+  .booking-panel .selected-summary { flex:1; min-width:220px; font-size:13px; }
+  .booking-panel .selected-summary .none { color:var(--text-faint); }
+  .booking-panel label { font-size:12.5px; color:var(--text-dim); margin-right:6px; }
+  .booking-panel input[type=number] { width:80px; }
+</style>
+
+<div class="res-steps">
+  <a href="{% url 'reservations:create' %}">① เลือกวันที่</a> › <span class="active">② เลือกโต๊ะจากผังร้าน</span>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <div class="fp-header">
+    <h4><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg>ผังร้านวันที่ {{ reservation_date_display }}</h4>
+    <a href="{% url 'reservations:create' %}" class="btn btn-sm btn-outline-light">เปลี่ยนวันที่</a>
+  </div>
+  <div class="fp-legend">
+    <span><span class="dot" style="background:#2e7d4f;"></span>ว่าง (กดเลือกได้)</span>
+    <span><span class="dot" style="background:var(--fc-red);"></span>เลือกอยู่</span>
+    <span><span class="dot" style="background:#3a3233;"></span>ไม่ว่าง</span>
+  </div>
+
+  <form method="post" id="bookingForm">
+    {% csrf_token %}
+    <div class="floor-canvas" id="floorCanvas">
+      {% for table in tables %}
+        <div class="table-chip-wrap" style="left:{{ table.pos_x }}%; top:{{ table.pos_y }}%;">
+          {% if table.id in busy_ids %}
+            <div class="table-chip shape-{{ table.shape }} busy"
+                 style="width:{{ table.width_px }}px;height:{{ table.height_px }}px;">
+              {{ table.table_number }}
+              <small>ไม่ว่าง</small>
+            </div>
+          {% else %}
+            <input type="checkbox" name="table_ids" value="{{ table.id }}" class="table-select-input" data-capacity="{{ table.capacity }}" data-number="{{ table.table_number }}" style="display:none;">
+            <div class="table-chip shape-{{ table.shape }} available" data-id="{{ table.id }}"
+                 style="width:{{ table.width_px }}px;height:{{ table.height_px }}px;">
+              {{ table.table_number }}
+              <small>{{ table.capacity }} ที่นั่ง</small>
+            </div>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p style="padding:20px;color:var(--fc-gray);">ยังไม่มีข้อมูลโต๊ะในระบบ</p>
+      {% endfor %}
+
+      {% for lm in landmarks %}
+        <div class="table-chip-wrap" style="left:{{ lm.pos_x }}%; top:{{ lm.pos_y }}%;">
+          <div class="landmark-chip" style="width:{{ lm.width_px }}px;height:{{ lm.height_px }}px;">
+            <span class="lm-icon">{% include "tables/_landmark_icon.html" with kind=lm.kind %}</span>
+            <span class="lm-label">{{ lm.display_label }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="booking-panel">
+      <div class="selected-summary" id="selectedSummary">
+        <span class="none">ยังไม่ได้เลือกโต๊ะ - กดที่โต๊ะสีเขียวบนผังร้านด้านบน</span>
+      </div>
+      <div>
+        <label for="partySizeInput">จำนวนคน:</label>
+        <input type="number" min="1" max="50" step="1" name="party_size" id="partySizeInput" class="form-control d-inline-block" required>
+      </div>
+      <div>
+        <input type="checkbox" name="extra_chair_requested" id="extraChair">
+        <label for="extraChair" style="margin-left:4px;">ขอเก้าอี้เพิ่มเติม</label>
+      </div>
+      <button type="submit" class="btn btn-dark" id="confirmBtn">ยืนยันการจอง</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const chips = document.querySelectorAll('.table-chip.available');
+  const summary = document.getElementById('selectedSummary');
+
+  function refreshSummary() {
+    const selected = [];
+    document.querySelectorAll('.table-select-input').forEach((input) => {
+      if (input.checked) {
+        selected.push({ number: input.dataset.number, capacity: parseInt(input.dataset.capacity, 10) });
+      }
+    });
+    if (selected.length === 0) {
+      summary.innerHTML = '<span class="none">ยังไม่ได้เลือกโต๊ะ - กดที่โต๊ะสีเขียวบนผังร้านด้านบน</span>';
+      return;
+    }
+    const totalCapacity = selected.reduce((sum, t) => sum + t.capacity, 0);
+    const numbers = selected.map((t) => t.number).join(', ');
+    summary.innerHTML = `เลือกโต๊ะ <strong>${numbers}</strong> (รวมจุได้ ${totalCapacity} ที่นั่ง)`;
+  }
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const wrap = chip.closest('.table-chip-wrap');
+      const input = wrap.querySelector('.table-select-input');
+      input.checked = !input.checked;
+      chip.classList.toggle('selected', input.checked);
+      refreshSummary();
+    });
+  });
+</script>
+{% endblock %}

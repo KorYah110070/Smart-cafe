@@ -1,0 +1,485 @@
+{% extends "dashboard/base_admin.html" %}
+{% load static %}
+{% block title %}Admin Dashboard - Smart Cafe{% endblock %}
+
+{% block extra_css %}
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; align-items: start; }
+.date-picker { display: flex; align-items: center; gap: 8px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 20px; padding: 6px 10px; }
+.date-picker input[type="date"] { background: transparent; border: none; color: var(--text); font-size: 13px; font-family: inherit; }
+.date-picker a { padding: 4px 8px; border-radius: 10px; color: var(--text-dim); }
+.date-picker a:hover { background: var(--bg-panel-2); color: var(--text); }
+.head-row { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
+.zoom-row { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 18px; color: var(--text-dim); font-size: 12px; }
+.res-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); font-size: 12.5px; }
+.res-row:last-child { border-bottom: none; }
+.res-row .who { display: flex; align-items: center; gap: 8px; }
+.res-row .avatar-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--bg-panel-2); display:flex; align-items:center; justify-content:center; font-size: 11px; }
+.table-chip-wrap { position: absolute; transform: translate(-50%, -50%); }
+.floor-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.floor-toolbar-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-tiles-2 { display: flex; gap: 14px; margin-top: 16px; }
+@media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+
+{% block content %}
+<div class="head-row">
+  <div>
+    <h1>Admin Dashboard</h1>
+    <div class="page-sub">ภาพรวมและจัดการร้านคาเฟ่</div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="date-picker">
+      <a href="?date={{ prev_date_iso }}">&lsaquo;</a>
+      <span><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke:currentColor;fill:none;vertical-align:-2px;"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg></span>
+      <form method="get" style="margin:0;" id="dateForm">
+        <input type="date" name="date" value="{{ selected_date_iso }}" onchange="document.getElementById('dateForm').submit()">
+      </form>
+      <a href="?date={{ next_date_iso }}">&rsaquo;</a>
+      <a href="?date={{ today_iso }}" class="td-btn td-btn-sm td-btn-solid" style="margin-left:4px;">วันนี้</a>
+    </div>
+
+    <div class="td-legend">
+      <span><span class="dot" style="background:var(--status-available);"></span>ว่าง</span>
+      <span><span class="dot" style="background:var(--status-reserved);"></span>จองแล้ว</span>
+      <span><span class="dot" style="background:var(--status-preparing);"></span>กำลังเตรียม</span>
+      <span><span class="dot" style="background:var(--status-served);"></span>เสิร์ฟแล้ว</span>
+    </div>
+  </div>
+</div>
+
+<div class="dash-grid">
+  <div>
+    <div class="td-card">
+      <div class="td-card-head">
+        <div>
+          <h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="3.5" y="4" width="17" height="12" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M7 16v3M17 16v3"/></svg>ผังโต๊ะของร้าน</h2>
+          <div class="page-sub" style="margin:2px 0 0;">วันที่ {{ selected_date_thai }}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="td-btn td-btn-sm td-btn-solid" id="addTableBtn" onclick="openAddTableModal()" style="display:none;">+ เพิ่มโต๊ะ</button>
+          <button class="td-btn td-btn-sm" id="dragModeBtn" onclick="toggleDragMode()">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19 3 20l1-4Z"/></svg>
+            แก้ไขผังร้าน
+          </button>
+          <a class="td-btn td-btn-sm" href="{% url 'tables:manage' %}">
+            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><circle cx="12" cy="12" r="2.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.4-2-3.4-2.2.9a7.5 7.5 0 0 0-2.6-1.5L14.1 2h-4l-.4 2.1a7.5 7.5 0 0 0-2.6 1.5l-2.2-.9-2 3.4 1.9 1.4a7.6 7.6 0 0 0 0 3l-1.9 1.4 2 3.4 2.2-.9a7.5 7.5 0 0 0 2.6 1.5l.4 2.1h4l.4-2.1a7.5 7.5 0 0 0 2.6-1.5l2.2.9 2-3.4-1.9-1.4Z"/></svg>
+            จัดการโต๊ะ
+          </a>
+        </div>
+      </div>
+      <div class="td-card-body">
+        <div class="floor-toolbar">
+          <div class="floor-toolbar-label">+ วางสิ่งกีดขวาง/จุดสำคัญบนผังร้าน</div>
+          <form method="post" action="{% url 'tables:landmark_add' %}" class="td-landmark-toolbar">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}?date={{ selected_date_iso }}">
+            <button type="submit" name="kind" value="bar">{% include "tables/_landmark_icon.html" with kind="bar" %} บาร์</button>
+            <button type="submit" name="kind" value="entrance">{% include "tables/_landmark_icon.html" with kind="entrance" %} ทางเข้า-ออก</button>
+            <button type="submit" name="kind" value="stage">{% include "tables/_landmark_icon.html" with kind="stage" %} เวที</button>
+            <button type="submit" name="kind" value="drink_bar">{% include "tables/_landmark_icon.html" with kind="drink_bar" %} บาร์น้ำ</button>
+            <button type="submit" name="kind" value="fire_escape">{% include "tables/_landmark_icon.html" with kind="fire_escape" %} ทางหนีไฟ</button>
+            <button type="submit" name="kind" value="stairs">{% include "tables/_landmark_icon.html" with kind="stairs" %} บันได</button>
+            <button type="submit" name="kind" value="cashier">{% include "tables/_landmark_icon.html" with kind="cashier" %} แคชเชียร์</button>
+          </form>
+        </div>
+        <div class="td-floor-canvas" id="floorCanvas">
+          {% for row in table_rows %}
+            <div class="table-chip-wrap" id="chip-wrap-{{ row.table.id }}" data-kind="table" data-id="{{ row.table.id }}"
+                 style="left:{{ row.table.pos_x }}%; top:{{ row.table.pos_y }}%;">
+              <div class="td-table-chip shape-{{ row.table.shape }}" id="chip-{{ row.table.id }}"
+                   data-id="{{ row.table.id }}"
+                   data-kind="table"
+                   data-number="{{ row.table.table_number }}"
+                   data-status="{{ row.status }}"
+                   style="width:{{ row.table.width_px }}px;height:{{ row.table.height_px }}px;background:var(--status-{{ row.status }});"
+                   onclick="onChipClick({{ row.table.id }})">
+                T{{ row.table.table_number }}<small>{{ row.table.capacity }} คน</small>
+              </div>
+              <button type="button" class="td-table-edit-btn" onclick="openEditTableModal({{ row.table.id }}, '{{ row.table.shape }}', {{ row.table.capacity }}, '{{ row.table.table_number }}')" title="แก้ไขรูปทรง/จำนวนที่นั่ง">
+                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;stroke:currentColor;fill:none;"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19 3 20l1-4Z"/></svg>
+              </button>
+              <button type="button" class="td-landmark-delete" onclick="deleteTable({{ row.table.id }})" title="ลบโต๊ะนี้">✕</button>
+              <div class="td-resize-handle" data-target="chip-wrap-{{ row.table.id }}" title="ลากเพื่อปรับขนาด"></div>
+            </div>
+          {% empty %}
+            <div class="td-empty" style="padding-top:160px;">ยังไม่มีโต๊ะในระบบ กดปุ่ม "แก้ไขผังร้าน" แล้วกด "+ เพิ่มโต๊ะ" เพื่อเริ่มสร้างผังร้าน</div>
+          {% endfor %}
+
+          {% for lm in landmarks %}
+            <div class="table-chip-wrap" id="lm-wrap-{{ lm.id }}" data-kind="landmark" data-id="{{ lm.id }}"
+                 style="left:{{ lm.pos_x }}%; top:{{ lm.pos_y }}%;">
+              <div class="td-landmark-chip" id="lm-{{ lm.id }}"
+                   data-id="{{ lm.id }}"
+                   data-kind="landmark"
+                   style="width:{{ lm.width_px }}px;height:{{ lm.height_px }}px;">
+                <span class="lm-icon">{% include "tables/_landmark_icon.html" with kind=lm.kind %}</span>
+                <span class="lm-label">{{ lm.display_label }}</span>
+              </div>
+              <button type="button" class="td-landmark-delete" onclick="deleteLandmark({{ lm.id }})" title="ลบจุดสำคัญนี้">✕</button>
+              <div class="td-resize-handle" data-target="lm-wrap-{{ lm.id }}" title="ลากเพื่อปรับขนาด"></div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="td-card" style="margin-top:18px;">
+      <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="3.5" y="4" width="17" height="12" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M7 16v3M17 16v3"/></svg>สรุปสถานะโต๊ะ ({{ selected_date_iso }})</h2></div>
+      <div class="td-card-body">
+        <div class="td-stat-row">
+          <div class="td-stat-tile"><div class="num">{{ total_tables }}</div><div class="label">โต๊ะทั้งหมด</div></div>
+          <div class="td-stat-tile"><div class="num" style="color:var(--status-available);">{{ available_count }}</div><div class="label">โต๊ะว่าง</div></div>
+          <div class="td-stat-tile"><div class="num" style="color:var(--status-reserved);">{{ reserved_count }}</div><div class="label">จองแล้ว</div></div>
+          <div class="td-stat-tile"><div class="num" style="color:var(--status-preparing);">{{ preparing_count }}</div><div class="label">กำลังใช้งาน</div></div>
+          <div class="td-stat-tile"><div class="num" style="color:var(--status-served);">{{ served_count }}</div><div class="label">ให้บริการแล้ว</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="td-card">
+      <div class="td-card-head">
+        <h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg>การจองของวันที่ {{ selected_date_iso }}</h2>
+        <a href="{% url 'reservations:admin_list' %}?date={{ selected_date_iso }}" class="td-btn td-btn-sm">ดูทั้งหมด →</a>
+      </div>
+      <div class="td-card-body">
+        {% for r in reservations_for_day %}
+          <div class="res-row">
+            <div class="who">
+              <span class="avatar-dot"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;stroke:currentColor;fill:none;"><circle cx="12" cy="8.5" r="3.3"/><path d="M5.5 20c0-3.6 2.9-6.3 6.5-6.3s6.5 2.7 6.5 6.3"/></svg></span>
+              <span>{{ r.customer_display_name }}</span>
+            </div>
+            <span>T{{ r.table_numbers_display }}</span>
+            <span>{{ r.party_size }}</span>
+            <span class="td-badge td-badge-{{ r.status }}">{{ r.get_status_display }}</span>
+            <a class="td-btn td-btn-sm" href="{% url 'reservations:admin_list' %}?date={{ selected_date_iso }}" title="จัดการ">
+              <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+              จัดการ
+            </a>
+          </div>
+        {% empty %}
+          <div class="td-empty">ยังไม่มีการจองในวันนี้</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="td-card" style="margin-top:18px;">
+      <div class="td-card-head">
+        <h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg>การจองล่วงหน้า</h2>
+        <a href="{% url 'reservations:admin_list' %}" class="td-btn td-btn-sm">7 วันข้างหน้า →</a>
+      </div>
+      <div class="td-card-body">
+        {% for r in upcoming_reservations %}
+          <div class="res-row">
+            <span>{{ r.reservation_date|date:"d/m/Y" }}</span>
+            <span>{{ r.customer_display_name }}</span>
+            <span>T{{ r.table_numbers_display }}</span>
+            <span>{{ r.party_size }}</span>
+            <span class="td-badge td-badge-{{ r.status }}">{{ r.get_status_display }}</span>
+          </div>
+        {% empty %}
+          <div class="td-empty">ไม่มีการจองล่วงหน้าใน 7 วันข้างหน้า</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="td-card" style="margin-top:18px;">
+      <div class="td-card-head"><h2><svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none;vertical-align:-3px;margin-right:4px;"><rect x="4" y="12" width="3.2" height="8" rx="0.8"/><rect x="10.4" y="7" width="3.2" height="13" rx="0.8"/><rect x="16.8" y="3.5" width="3.2" height="16.5" rx="0.8"/></svg>ข้อมูลการจอง ({{ selected_date_iso }})</h2></div>
+      <div class="td-card-body">
+        <div class="stat-tiles-2">
+          <div class="td-stat-tile"><div class="num">{{ customer_count_for_day }}</div><div class="label">ลูกค้าที่จองวันนี้</div></div>
+          <div class="td-stat-tile"><div class="num">{{ reservation_count_for_day }}</div><div class="label">จำนวนการจองวันนี้</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: เพิ่มโต๊ะ -->
+<div class="td-modal-backdrop" id="addTableModal">
+  <div class="td-modal">
+    <div class="td-modal-head">
+      <h3>+ เพิ่มโต๊ะใหม่</h3>
+      <button class="td-modal-close" onclick="closeAddTableModal()">✕</button>
+    </div>
+    <form method="post" action="{% url 'tables:table_add' %}" class="td-modal-body">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}?date={{ selected_date_iso }}">
+      <div class="td-field">
+        <label>หมายเลขโต๊ะ</label>
+        <input type="number" name="table_number" required>
+      </div>
+      <div class="td-field">
+        <label>โซน</label>
+        <input type="text" name="zone" placeholder="เช่น A, B, C">
+      </div>
+      <div class="td-field">
+        <label>จำนวนที่นั่ง</label>
+        <input type="number" name="capacity" value="4" required>
+      </div>
+      <div class="td-field">
+        <label>รูปทรงโต๊ะ</label>
+        <select name="shape">
+          <option value="square">◻ จัตุรัส</option>
+          <option value="rect">▭ ผืนผ้า</option>
+          <option value="round">◯ กลม</option>
+        </select>
+      </div>
+      <div class="td-field">
+        <label>สถานะเริ่มต้น</label>
+        <select name="status">
+          <option value="available">ว่าง</option>
+          <option value="reserved">จองแล้ว</option>
+          <option value="preparing">กำลังเตรียม</option>
+          <option value="served">เสิร์ฟแล้ว</option>
+        </select>
+      </div>
+      <input type="hidden" name="pos_x" value="50">
+      <input type="hidden" name="pos_y" value="50">
+      <button type="submit" class="td-btn td-btn-solid" style="width:100%;">บันทึก</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: แก้ไขรูปทรง/จำนวนที่นั่งโต๊ะ (จากหน้าแก้ไขผังร้าน) -->
+<div class="td-modal-backdrop" id="editTableModal">
+  <div class="td-modal">
+    <div class="td-modal-head">
+      <h3>แก้ไขโต๊ะ <span id="editTableNum"></span></h3>
+      <button class="td-modal-close" onclick="closeEditTableModal()">✕</button>
+    </div>
+    <div class="td-modal-body">
+      <div class="td-field">
+        <label>รูปทรงโต๊ะ</label>
+        <select id="editTableShape">
+          <option value="square">◻ จัตุรัส</option>
+          <option value="rect">▭ ผืนผ้า</option>
+          <option value="round">◯ กลม</option>
+        </select>
+      </div>
+      <div class="td-field">
+        <label>จำนวนที่นั่ง</label>
+        <input type="number" id="editTableCapacity" min="1" value="4">
+      </div>
+      <button type="button" class="td-btn td-btn-solid" style="width:100%;" onclick="saveTableEdit()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: เปลี่ยนสถานะโต๊ะ -->
+<div class="td-modal-backdrop" id="statusModal">
+  <div class="td-modal">
+    <div class="td-modal-head">
+      <h3>เปลี่ยนสถานะโต๊ะ <span id="statusModalTableNum"></span></h3>
+      <button class="td-modal-close" onclick="closeStatusModal()">✕</button>
+    </div>
+    <div class="td-modal-body" style="display:flex;flex-direction:column;gap:10px;">
+      <button class="td-btn" style="border-color:var(--status-available);" onclick="setTableStatus('available')"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--status-available);"></span> ว่าง</button>
+      <button class="td-btn" style="border-color:var(--status-reserved);" onclick="setTableStatus('reserved')"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--status-reserved);"></span> จองแล้ว</button>
+      <button class="td-btn" style="border-color:var(--status-preparing);" onclick="setTableStatus('preparing')"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--status-preparing);"></span> กำลังเตรียม / รอออเดอร์</button>
+      <button class="td-btn" style="border-color:var(--status-served);" onclick="setTableStatus('served')"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--status-served);"></span> เสิร์ฟแล้ว</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  let editingMode = false;
+  let activeChipId = null;
+  const canvas = document.getElementById('floorCanvas');
+
+  function openAddTableModal() { document.getElementById('addTableModal').classList.add('open'); }
+  function closeAddTableModal() { document.getElementById('addTableModal').classList.remove('open'); }
+
+  function toggleDragMode() {
+    editingMode = !editingMode;
+    const btn = document.getElementById('dragModeBtn');
+    btn.classList.toggle('td-btn-solid', editingMode);
+    canvas.classList.toggle('editing-mode', editingMode);
+    document.querySelectorAll('.td-table-chip, .td-landmark-chip').forEach(chip => {
+      chip.classList.toggle('draggable', editingMode);
+    });
+    document.getElementById('addTableBtn').style.display = editingMode ? '' : 'none';
+    btn.innerHTML = editingMode
+      ? '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M5 13l4 4L19 7"/></svg>ยืนยันผังร้าน'
+      : '<svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:2px;"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19 3 20l1-4Z"/></svg>แก้ไขผังร้าน';
+  }
+
+  function onChipClick(tableId) {
+    // การเปลี่ยนสถานะโต๊ะ (แตะ/คลิกโดยไม่ลาก) ทำได้เสมอ ไม่เกี่ยวกับโหมดแก้ไขผังร้าน
+    // (ถ้าเพิ่งลากโต๊ะจริงๆ dragMoved จะเป็น true แล้วข้ามการเปิด modal นี้ไป)
+    if (dragMoved) { dragMoved = false; return; }
+    activeChipId = tableId;
+    const num = document.getElementById('chip-' + tableId).dataset.number;
+    document.getElementById('statusModalTableNum').textContent = 'T' + num;
+    document.getElementById('statusModal').classList.add('open');
+  }
+  function closeStatusModal() { document.getElementById('statusModal').classList.remove('open'); activeChipId = null; }
+
+  async function setTableStatus(status) {
+    if (!activeChipId) return;
+    const resp = await fetch(`/tables/manage/${activeChipId}/status/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify({ status: status }),
+    });
+    if (resp.ok) {
+      location.reload();
+    } else {
+      alert('เกิดข้อผิดพลาด ลองใหม่อีกครั้ง');
+    }
+  }
+
+  let editingTableId = null;
+  function openEditTableModal(tableId, shape, capacity, tableNumber) {
+    editingTableId = tableId;
+    document.getElementById('editTableNum').textContent = 'T' + tableNumber;
+    document.getElementById('editTableShape').value = shape;
+    document.getElementById('editTableCapacity').value = capacity;
+    document.getElementById('editTableModal').classList.add('open');
+  }
+  function closeEditTableModal() {
+    document.getElementById('editTableModal').classList.remove('open');
+    editingTableId = null;
+  }
+  async function saveTableEdit() {
+    if (!editingTableId) return;
+    const shape = document.getElementById('editTableShape').value;
+    const capacity = parseInt(document.getElementById('editTableCapacity').value, 10);
+    if (!capacity || capacity < 1) {
+      alert('กรุณาระบุจำนวนที่นั่งอย่างน้อย 1');
+      return;
+    }
+    const resp = await fetch(`/tables/manage/${editingTableId}/position/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify({ shape: shape, capacity: capacity }),
+    });
+    if (resp.ok) {
+      location.reload();
+    } else {
+      alert('บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+  }
+
+  async function deleteTable(tableId) {
+    if (!confirm('ลบโต๊ะนี้ใช่หรือไม่? การลบจะลบประวัติการจองที่ผูกกับโต๊ะนี้ไปด้วย และไม่สามารถย้อนกลับได้')) return;
+    const resp = await fetch(`/tables/manage/${tableId}/delete/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    if (resp.ok) {
+      document.getElementById('chip-wrap-' + tableId).remove();
+    } else {
+      alert('ลบไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+  }
+
+  async function deleteLandmark(landmarkId) {
+    if (!confirm('ลบจุดสำคัญนี้ใช่หรือไม่?')) return;
+    const resp = await fetch(`/tables/landmarks/${landmarkId}/delete/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    if (resp.ok) {
+      document.getElementById('lm-wrap-' + landmarkId).remove();
+    } else {
+      alert('ลบไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+  }
+
+  function geometryUrl(kind, id) {
+    return kind === 'table' ? `/tables/manage/${id}/position/` : `/tables/landmarks/${id}/geometry/`;
+  }
+
+  // --- ลากย้ายตำแหน่ง / ลากปรับขนาด โต๊ะและจุดสำคัญบนผังร้าน ---
+  let dragTarget = null;   // { chip, wrap, kind, id }
+  let resizeTarget = null; // { chip, wrap, kind, id, startX, startY, startW, startH }
+  let dragMoved = false;   // true เฉพาะตอนที่ลากโต๊ะจริงๆ (ไม่ใช่แค่แตะ/คลิกเฉยๆ)
+
+  document.querySelectorAll('.td-table-chip, .td-landmark-chip').forEach(chip => {
+    chip.addEventListener('pointerdown', (e) => {
+      dragMoved = false;
+      if (!editingMode) return;
+      const wrap = chip.closest('.table-chip-wrap');
+      dragTarget = { chip, wrap, kind: wrap.dataset.kind, id: wrap.dataset.id };
+      chip.classList.add('dragging');
+      chip.setPointerCapture(e.pointerId);
+    });
+  });
+
+  document.querySelectorAll('.td-resize-handle').forEach(handle => {
+    handle.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      const wrap = document.getElementById(handle.dataset.target);
+      const chip = wrap.querySelector('.td-table-chip, .td-landmark-chip');
+      resizeTarget = {
+        chip, wrap, kind: wrap.dataset.kind, id: wrap.dataset.id,
+        startX: e.clientX, startY: e.clientY,
+        startW: chip.offsetWidth, startH: chip.offsetHeight,
+      };
+      handle.setPointerCapture(e.pointerId);
+    });
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (dragTarget) {
+      dragMoved = true;
+      const rect = canvas.getBoundingClientRect();
+      let xPct = ((e.clientX - rect.left) / rect.width) * 100;
+      let yPct = ((e.clientY - rect.top) / rect.height) * 100;
+      xPct = Math.max(2, Math.min(98, xPct));
+      yPct = Math.max(2, Math.min(98, yPct));
+      dragTarget.wrap.style.left = xPct + '%';
+      dragTarget.wrap.style.top = yPct + '%';
+    } else if (resizeTarget) {
+      const dx = e.clientX - resizeTarget.startX;
+      const dy = e.clientY - resizeTarget.startY;
+      const newW = Math.max(36, Math.min(260, resizeTarget.startW + dx));
+      const newH = Math.max(28, Math.min(260, resizeTarget.startH + dy));
+      resizeTarget.chip.style.width = newW + 'px';
+      resizeTarget.chip.style.height = newH + 'px';
+    }
+  });
+
+  async function finishDrag() {
+    if (dragTarget) {
+      const { chip, wrap, kind, id } = dragTarget;
+      chip.classList.remove('dragging');
+      dragTarget = null;
+      if (!dragMoved) return; // แค่แตะ/คลิกเฉยๆ ไม่ได้ลากจริง ไม่ต้องบันทึกตำแหน่งใหม่
+      const xPct = parseFloat(wrap.style.left);
+      const yPct = parseFloat(wrap.style.top);
+      await fetch(geometryUrl(kind, id), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ pos_x: xPct, pos_y: yPct }),
+      });
+    } else if (resizeTarget) {
+      const { chip, kind, id } = resizeTarget;
+      const width_px = chip.offsetWidth;
+      const height_px = chip.offsetHeight;
+      resizeTarget = null;
+      await fetch(geometryUrl(kind, id), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ width_px: width_px, height_px: height_px }),
+      });
+    }
+  }
+  canvas.addEventListener('pointerup', finishDrag);
+  canvas.addEventListener('pointercancel', finishDrag);
+</script>
+{% endblock %}
